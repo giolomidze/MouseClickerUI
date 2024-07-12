@@ -1,26 +1,22 @@
-﻿using System;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 
-namespace MouseClickerWPF
+namespace MouseClickerUI
 {
-    public partial class MainWindow : Window
+    public partial class MainWindow
     {
-        private static bool clicking = false;
-        private static bool listening = false;
-        private static bool prevEnableListeningState = false;
-        private static bool prevDisableListeningState = false;
-        private static bool prevEnableClickingState = false;
-        private static string targetWindowTitle = string.Empty;
-        private static int clickDelay = 100; // Default delay in milliseconds
-        private DispatcherTimer timer;
+        private static bool _clicking;
+        private static bool _listening;
+        private static bool _prevEnableListeningState;
+        private static bool _prevDisableListeningState;
+        private static bool _prevEnableClickingState;
+        private static string _targetWindowTitle = string.Empty;
+        private static int _clickDelay = 100; // Default delay in milliseconds
+        private readonly DispatcherTimer _timer;
 
         [DllImport("user32.dll")]
         private static extern void mouse_event(uint dwFlags, int dx, int dy, uint dwData, UIntPtr dwExtraInfo);
@@ -44,28 +40,24 @@ namespace MouseClickerWPF
 
         private static bool IsTargetWindow()
         {
-            if (string.IsNullOrEmpty(targetWindowTitle))
+            if (string.IsNullOrEmpty(_targetWindowTitle))
             {
                 return false;
             }
 
-            IntPtr foregroundWindow = GetForegroundWindow();
-            StringBuilder windowText = new StringBuilder(256);
-            if (GetWindowText(foregroundWindow, windowText, windowText.Capacity) > 0)
-            {
-                return windowText.ToString().Contains(targetWindowTitle);
-            }
-
-            return false;
+            var foregroundWindow = GetForegroundWindow();
+            var windowText = new StringBuilder(256);
+            return GetWindowText(foregroundWindow, windowText, windowText.Capacity) > 0 &&
+                   windowText.ToString().Contains(_targetWindowTitle);
         }
 
         public MainWindow()
         {
             InitializeComponent();
             LoadProcesses();
-            timer = new DispatcherTimer();
-            timer.Interval = TimeSpan.FromMilliseconds(10);
-            timer.Tick += Timer_Tick;
+            _timer = new DispatcherTimer();
+            _timer.Interval = TimeSpan.FromMilliseconds(10);
+            _timer.Tick += Timer_Tick;
 
             // Add focus event handler for ComboBox
             comboBoxProcesses.GotFocus += ComboBoxProcesses_GotFocus;
@@ -101,26 +93,26 @@ namespace MouseClickerWPF
             }
 
             textBlockValidationMessage.Visibility = Visibility.Collapsed;
-            targetWindowTitle = ((Process)comboBoxProcesses.SelectedItem).MainWindowTitle;
-            listening = true;
-            labelStatus.Content = $"Listening enabled for {targetWindowTitle}";
-            timer.Start();
+            _targetWindowTitle = ((Process)comboBoxProcesses.SelectedItem).MainWindowTitle;
+            _listening = true;
+            labelStatus.Content = $"Listening enabled for {_targetWindowTitle}";
+            _timer.Start();
         }
 
         private void buttonStopListening_Click(object sender, RoutedEventArgs e)
         {
-            listening = false;
-            clicking = false; // Stop clicking when stop listening
+            _listening = false;
+            _clicking = false; // Stop clicking when stop listening
             labelStatus.Content = "Listening disabled";
-            timer.Stop();
+            _timer.Stop();
         }
 
         private void SliderDelay_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (textBoxDelay != null)
             {
-                clickDelay = (int)e.NewValue;
-                textBoxDelay.Text = clickDelay.ToString();
+                _clickDelay = (int)e.NewValue;
+                textBoxDelay.Text = _clickDelay.ToString();
             }
         }
 
@@ -137,12 +129,12 @@ namespace MouseClickerWPF
                     newDelay = (int)sliderDelay.Maximum;
                 }
 
-                clickDelay = newDelay;
+                _clickDelay = newDelay;
                 sliderDelay.Value = newDelay;
             }
             else
             {
-                textBoxDelay.Text = clickDelay.ToString();
+                textBoxDelay.Text = _clickDelay.ToString();
             }
         }
 
@@ -159,16 +151,16 @@ namespace MouseClickerWPF
                     newDelay = (int)sliderDelay.Maximum;
                 }
 
-                clickDelay = newDelay;
+                _clickDelay = newDelay;
                 sliderDelay.Value = newDelay;
             }
             else
             {
-                textBoxDelay.Text = clickDelay.ToString();
+                textBoxDelay.Text = _clickDelay.ToString();
             }
         }
 
-        private void Timer_Tick(object sender, EventArgs e)
+        private void Timer_Tick(object? sender, EventArgs e)
         {
             UpdateMouseClickingState();
         }
@@ -186,42 +178,42 @@ namespace MouseClickerWPF
             bool isKey9Pressed = IsKeyPressed(0x39); // Key '9'
 
             // Check if the number 1 key is pressed to enable listening
-            if (isKey1Pressed && !prevEnableListeningState)
+            if (isKey1Pressed && !_prevEnableListeningState)
             {
-                listening = true;
+                _listening = true;
                 labelStatus.Content = $"Listening enabled at {DateTime.Now}";
             }
 
-            prevEnableListeningState = isKey1Pressed;
+            _prevEnableListeningState = isKey1Pressed;
 
             // Check if the number 0 key is pressed to disable listening
-            if (isKey0Pressed && !prevDisableListeningState)
+            if (isKey0Pressed && !_prevDisableListeningState)
             {
-                listening = false;
-                clicking = false; // Stop clicking when 0 key is pressed
+                _listening = false;
+                _clicking = false; // Stop clicking when 0 key is pressed
                 labelStatus.Content = $"Listening disabled at {DateTime.Now}";
             }
 
-            prevDisableListeningState = isKey0Pressed;
+            _prevDisableListeningState = isKey0Pressed;
 
             // Check if the mouse clicking should be enabled
-            if (listening && isKey8Pressed && !prevEnableClickingState)
+            if (_listening && isKey8Pressed && !_prevEnableClickingState)
             {
-                clicking = true;
+                _clicking = true;
                 labelStatus.Content = $"Mouse clicking enabled at {DateTime.Now}";
             }
 
-            prevEnableClickingState = isKey8Pressed;
+            _prevEnableClickingState = isKey8Pressed;
 
             // Check if the mouse clicking should be disabled
-            if (listening && isKey9Pressed && clicking)
+            if (_listening && isKey9Pressed && _clicking)
             {
-                clicking = false;
+                _clicking = false;
                 labelStatus.Content = $"Mouse clicking disabled at {DateTime.Now}";
             }
 
             // Check if the mouse clicking is currently enabled
-            if (clicking)
+            if (_clicking)
             {
                 // Simulate a mouse click
                 SimulateMouseClick();
@@ -233,7 +225,7 @@ namespace MouseClickerWPF
             // Simulate a left mouse click
             mouse_event(MouseeventfLeftdown, 0, 0, 0, UIntPtr.Zero);
             mouse_event(MouseeventfLeftup, 0, 0, 0, UIntPtr.Zero);
-            await Task.Delay(clickDelay);
+            await Task.Delay(_clickDelay);
         }
     }
 }
