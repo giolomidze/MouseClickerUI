@@ -21,8 +21,8 @@ namespace MouseClickerUI
         [DllImport("user32.dll")]
         private static extern void mouse_event(uint dwFlags, int dx, int dy, uint dwData, UIntPtr dwExtraInfo);
 
-        private const uint MouseeventfLeftdown = 0x02;
-        private const uint MouseeventfLeftup = 0x04;
+        private const uint MouseEventLetdown = 0x02;
+        private const uint MouseEventLeftUp = 0x04;
 
         [DllImport("user32.dll")]
         private static extern short GetKeyState(int nVirtKey);
@@ -55,8 +55,10 @@ namespace MouseClickerUI
         {
             InitializeComponent();
             LoadProcesses();
-            _timer = new DispatcherTimer();
-            _timer.Interval = TimeSpan.FromMilliseconds(10);
+            _timer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(10)
+            };
             _timer.Tick += Timer_Tick;
 
             // Add focus event handler for ComboBox
@@ -165,7 +167,7 @@ namespace MouseClickerUI
             UpdateMouseClickingState();
         }
 
-        public void UpdateMouseClickingState()
+        private void UpdateMouseClickingState()
         {
             if (!IsTargetWindow())
             {
@@ -223,8 +225,8 @@ namespace MouseClickerUI
         private async void SimulateMouseClick()
         {
             // Simulate a left mouse click
-            mouse_event(MouseeventfLeftdown, 0, 0, 0, UIntPtr.Zero);
-            mouse_event(MouseeventfLeftup, 0, 0, 0, UIntPtr.Zero);
+            mouse_event(MouseEventLetdown, 0, 0, 0, UIntPtr.Zero);
+            mouse_event(MouseEventLeftUp, 0, 0, 0, UIntPtr.Zero);
             await Task.Delay(_clickDelay);
         }
     }
