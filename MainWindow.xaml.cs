@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Threading;
 
 namespace MouseClickerWPF
@@ -23,6 +24,7 @@ namespace MouseClickerWPF
 
         [DllImport("user32.dll")]
         private static extern void mouse_event(uint dwFlags, int dx, int dy, uint dwData, UIntPtr dwExtraInfo);
+
         private const uint MouseeventfLeftdown = 0x02;
         private const uint MouseeventfLeftup = 0x04;
 
@@ -53,6 +55,7 @@ namespace MouseClickerWPF
             {
                 return windowText.ToString().Contains(targetWindowTitle);
             }
+
             return false;
         }
 
@@ -76,9 +79,9 @@ namespace MouseClickerWPF
         private void LoadProcesses()
         {
             var processes = Process.GetProcesses()
-                                   .Where(p => !string.IsNullOrEmpty(p.MainWindowTitle))
-                                   .OrderBy(p => p.ProcessName)
-                                   .ToList();
+                .Where(p => !string.IsNullOrEmpty(p.MainWindowTitle))
+                .OrderBy(p => p.ProcessName)
+                .ToList();
 
             comboBoxProcesses.ItemsSource = processes;
             comboBoxProcesses.DisplayMemberPath = "MainWindowTitle";
@@ -92,7 +95,8 @@ namespace MouseClickerWPF
                 textBlockValidationMessage.Text = "Please select an application first.";
                 textBlockValidationMessage.Visibility = Visibility.Visible;
                 comboBoxProcesses.Focus(); // Set focus back to the ComboBox
-                MessageBox.Show("Please select an application first.", "Validation", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Please select an application first.", "Validation", MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
                 return;
             }
 
@@ -120,6 +124,50 @@ namespace MouseClickerWPF
             }
         }
 
+        private void TextBoxDelay_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (int.TryParse(textBoxDelay.Text, out int newDelay))
+            {
+                if (newDelay < (int)sliderDelay.Minimum)
+                {
+                    newDelay = (int)sliderDelay.Minimum;
+                }
+                else if (newDelay > (int)sliderDelay.Maximum)
+                {
+                    newDelay = (int)sliderDelay.Maximum;
+                }
+
+                clickDelay = newDelay;
+                sliderDelay.Value = newDelay;
+            }
+            else
+            {
+                textBoxDelay.Text = clickDelay.ToString();
+            }
+        }
+
+        private void TextBoxDelay_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (int.TryParse(textBoxDelay.Text, out int newDelay))
+            {
+                if (newDelay < (int)sliderDelay.Minimum)
+                {
+                    newDelay = (int)sliderDelay.Minimum;
+                }
+                else if (newDelay > (int)sliderDelay.Maximum)
+                {
+                    newDelay = (int)sliderDelay.Maximum;
+                }
+
+                clickDelay = newDelay;
+                sliderDelay.Value = newDelay;
+            }
+            else
+            {
+                textBoxDelay.Text = clickDelay.ToString();
+            }
+        }
+
         private void Timer_Tick(object sender, EventArgs e)
         {
             UpdateMouseClickingState();
@@ -143,6 +191,7 @@ namespace MouseClickerWPF
                 listening = true;
                 labelStatus.Content = $"Listening enabled at {DateTime.Now}";
             }
+
             prevEnableListeningState = isKey1Pressed;
 
             // Check if the number 0 key is pressed to disable listening
@@ -152,6 +201,7 @@ namespace MouseClickerWPF
                 clicking = false; // Stop clicking when 0 key is pressed
                 labelStatus.Content = $"Listening disabled at {DateTime.Now}";
             }
+
             prevDisableListeningState = isKey0Pressed;
 
             // Check if the mouse clicking should be enabled
@@ -160,6 +210,7 @@ namespace MouseClickerWPF
                 clicking = true;
                 labelStatus.Content = $"Mouse clicking enabled at {DateTime.Now}";
             }
+
             prevEnableClickingState = isKey8Pressed;
 
             // Check if the mouse clicking should be disabled
