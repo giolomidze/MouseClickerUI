@@ -3,7 +3,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Threading;
 
 namespace MouseClickerWPF
@@ -16,11 +18,11 @@ namespace MouseClickerWPF
         private static bool prevDisableListeningState = false;
         private static bool prevEnableClickingState = false;
         private static string targetWindowTitle = string.Empty;
+        private static int clickDelay = 100; // Default delay in milliseconds
         private DispatcherTimer timer;
 
         [DllImport("user32.dll")]
         private static extern void mouse_event(uint dwFlags, int dx, int dy, uint dwData, UIntPtr dwExtraInfo);
-
         private const uint MouseeventfLeftdown = 0x02;
         private const uint MouseeventfLeftup = 0x04;
 
@@ -51,7 +53,6 @@ namespace MouseClickerWPF
             {
                 return windowText.ToString().Contains(targetWindowTitle);
             }
-
             return false;
         }
 
@@ -75,9 +76,9 @@ namespace MouseClickerWPF
         private void LoadProcesses()
         {
             var processes = Process.GetProcesses()
-                .Where(p => !string.IsNullOrEmpty(p.MainWindowTitle))
-                .OrderBy(p => p.ProcessName)
-                .ToList();
+                                   .Where(p => !string.IsNullOrEmpty(p.MainWindowTitle))
+                                   .OrderBy(p => p.ProcessName)
+                                   .ToList();
 
             comboBoxProcesses.ItemsSource = processes;
             comboBoxProcesses.DisplayMemberPath = "MainWindowTitle";
@@ -91,8 +92,7 @@ namespace MouseClickerWPF
                 textBlockValidationMessage.Text = "Please select an application first.";
                 textBlockValidationMessage.Visibility = Visibility.Visible;
                 comboBoxProcesses.Focus(); // Set focus back to the ComboBox
-                MessageBox.Show("Please select an application first.", "Validation", MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
+                MessageBox.Show("Please select an application first.", "Validation", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -109,6 +109,15 @@ namespace MouseClickerWPF
             clicking = false; // Stop clicking when stop listening
             labelStatus.Content = "Listening disabled";
             timer.Stop();
+        }
+
+        private void SliderDelay_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (textBoxDelay != null)
+            {
+                clickDelay = (int)e.NewValue;
+                textBoxDelay.Text = clickDelay.ToString();
+            }
         }
 
         private void Timer_Tick(object sender, EventArgs e)
@@ -134,7 +143,6 @@ namespace MouseClickerWPF
                 listening = true;
                 labelStatus.Content = $"Listening enabled at {DateTime.Now}";
             }
-
             prevEnableListeningState = isKey1Pressed;
 
             // Check if the number 0 key is pressed to disable listening
@@ -144,7 +152,6 @@ namespace MouseClickerWPF
                 clicking = false; // Stop clicking when 0 key is pressed
                 labelStatus.Content = $"Listening disabled at {DateTime.Now}";
             }
-
             prevDisableListeningState = isKey0Pressed;
 
             // Check if the mouse clicking should be enabled
@@ -153,7 +160,6 @@ namespace MouseClickerWPF
                 clicking = true;
                 labelStatus.Content = $"Mouse clicking enabled at {DateTime.Now}";
             }
-
             prevEnableClickingState = isKey8Pressed;
 
             // Check if the mouse clicking should be disabled
@@ -171,11 +177,12 @@ namespace MouseClickerWPF
             }
         }
 
-        private void SimulateMouseClick()
+        private async void SimulateMouseClick()
         {
             // Simulate a left mouse click
             mouse_event(MouseeventfLeftdown, 0, 0, 0, UIntPtr.Zero);
             mouse_event(MouseeventfLeftup, 0, 0, 0, UIntPtr.Zero);
+            await Task.Delay(clickDelay);
         }
     }
 }
