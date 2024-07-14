@@ -17,6 +17,7 @@ namespace MouseClickerUI
         private static string _targetWindowTitle = string.Empty;
         private static int _clickDelay = 100; // Default delay in milliseconds
         private readonly DispatcherTimer _timer;
+        private readonly DispatcherTimer _pollingTimer;
 
         [DllImport("user32.dll")]
         private static extern void mouse_event(uint dwFlags, int dx, int dy, uint dwData, UIntPtr dwExtraInfo);
@@ -61,6 +62,13 @@ namespace MouseClickerUI
             };
             _timer.Tick += Timer_Tick;
 
+            _pollingTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(1)
+            };
+            _pollingTimer.Tick += PollingTimer_Tick;
+            _pollingTimer.Start();
+
             // Add focus event handler for ComboBox
             comboBoxProcesses.GotFocus += ComboBoxProcesses_GotFocus;
         }
@@ -70,7 +78,7 @@ namespace MouseClickerUI
             textBlockValidationMessage.Visibility = Visibility.Collapsed;
         }
 
-        private void LoadProcesses()
+        private void LoadProcesses(string? selectedProcessName = null)
         {
             var processes = Process.GetProcesses()
                 .Where(p => !string.IsNullOrEmpty(p.MainWindowTitle))
@@ -80,6 +88,18 @@ namespace MouseClickerUI
             comboBoxProcesses.ItemsSource = processes;
             comboBoxProcesses.DisplayMemberPath = "MainWindowTitle";
             comboBoxProcesses.SelectedValuePath = "ProcessName";
+
+            if (!string.IsNullOrEmpty(selectedProcessName))
+            {
+                comboBoxProcesses.SelectedValue = selectedProcessName;
+            }
+        }
+
+        private void PollingTimer_Tick(object? sender, EventArgs e)
+        {
+            var selectedProcess = comboBoxProcesses.SelectedItem as Process;
+            var selectedProcessName = selectedProcess?.ProcessName;
+            if (selectedProcessName != null) LoadProcesses(selectedProcessName);
         }
 
         private void buttonStartListening_Click(object sender, RoutedEventArgs e)
