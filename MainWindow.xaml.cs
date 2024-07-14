@@ -18,6 +18,7 @@ namespace MouseClickerUI
         private static int _clickDelay = 100; // Default delay in milliseconds
         private readonly DispatcherTimer _timer;
         private readonly DispatcherTimer _pollingTimer;
+        private List<string> _cachedProcessNames = new List<string>();
 
         [DllImport("user32.dll")]
         private static extern void mouse_event(uint dwFlags, int dx, int dy, uint dwData, UIntPtr dwExtraInfo);
@@ -64,7 +65,7 @@ namespace MouseClickerUI
 
             _pollingTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromSeconds(1)
+                Interval = TimeSpan.FromSeconds(1) // Set the polling interval (e.g., every 10 seconds)
             };
             _pollingTimer.Tick += PollingTimer_Tick;
             _pollingTimer.Start();
@@ -85,6 +86,10 @@ namespace MouseClickerUI
                 .OrderBy(p => p.ProcessName)
                 .ToList();
 
+            var processNames = processes.Select(p => p.ProcessName).ToList();
+
+            if (_cachedProcessNames.SequenceEqual(processNames)) return;
+            _cachedProcessNames = processNames;
             comboBoxProcesses.ItemsSource = processes;
             comboBoxProcesses.DisplayMemberPath = "MainWindowTitle";
             comboBoxProcesses.SelectedValuePath = "ProcessName";
@@ -98,8 +103,8 @@ namespace MouseClickerUI
         private void PollingTimer_Tick(object? sender, EventArgs e)
         {
             var selectedProcess = comboBoxProcesses.SelectedItem as Process;
-            var selectedProcessName = selectedProcess?.ProcessName;
-            if (selectedProcessName != null) LoadProcesses(selectedProcessName);
+            string? selectedProcessName = selectedProcess?.ProcessName;
+            LoadProcesses(selectedProcessName);
         }
 
         private void buttonStartListening_Click(object sender, RoutedEventArgs e)
