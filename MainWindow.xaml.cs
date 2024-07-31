@@ -70,12 +70,12 @@ namespace MouseClickerUI
             _pollingTimer.Tick += PollingTimer_Tick;
             _pollingTimer.Start();
 
-            comboBoxProcesses.GotFocus += ComboBoxProcesses_GotFocus;
+            ComboBoxProcesses.GotFocus += ComboBoxProcesses_GotFocus;
         }
 
         private void ComboBoxProcesses_GotFocus(object sender, RoutedEventArgs e)
         {
-            textBlockValidationMessage.Visibility = Visibility.Collapsed;
+            TextBlockValidationMessage.Visibility = Visibility.Collapsed;
         }
 
         private void LoadProcesses(string? selectedProcessName = null)
@@ -89,39 +89,39 @@ namespace MouseClickerUI
 
             if (_cachedProcessNames.SequenceEqual(processNames)) return;
             _cachedProcessNames = processNames;
-            comboBoxProcesses.ItemsSource = processes;
-            comboBoxProcesses.DisplayMemberPath = "MainWindowTitle";
-            comboBoxProcesses.SelectedValuePath = "ProcessName";
+            ComboBoxProcesses.ItemsSource = processes;
+            ComboBoxProcesses.DisplayMemberPath = "MainWindowTitle";
+            ComboBoxProcesses.SelectedValuePath = "ProcessName";
 
             if (!string.IsNullOrEmpty(selectedProcessName))
             {
-                comboBoxProcesses.SelectedValue = selectedProcessName;
+                ComboBoxProcesses.SelectedValue = selectedProcessName;
             }
         }
 
         private void PollingTimer_Tick(object? sender, EventArgs e)
         {
-            var selectedProcess = comboBoxProcesses.SelectedItem as Process;
+            var selectedProcess = ComboBoxProcesses.SelectedItem as Process;
             var selectedProcessName = selectedProcess?.ProcessName;
             LoadProcesses(selectedProcessName);
         }
 
         private void buttonStartListening_Click(object sender, RoutedEventArgs e)
         {
-            if (comboBoxProcesses.SelectedItem == null)
+            if (ComboBoxProcesses.SelectedItem == null)
             {
-                textBlockValidationMessage.Text = "Please select an application first.";
-                textBlockValidationMessage.Visibility = Visibility.Visible;
-                comboBoxProcesses.Focus();
+                TextBlockValidationMessage.Text = "Please select an application first.";
+                TextBlockValidationMessage.Visibility = Visibility.Visible;
+                ComboBoxProcesses.Focus();
                 MessageBox.Show("Please select an application first.", "Validation", MessageBoxButton.OK,
                     MessageBoxImage.Warning);
                 return;
             }
 
-            textBlockValidationMessage.Visibility = Visibility.Collapsed;
-            _targetWindowTitle = ((Process)comboBoxProcesses.SelectedItem).MainWindowTitle;
+            TextBlockValidationMessage.Visibility = Visibility.Collapsed;
+            _targetWindowTitle = ((Process)ComboBoxProcesses.SelectedItem).MainWindowTitle;
             _listening = true;
-            labelStatus.Content = $"Listening enabled for {_targetWindowTitle}";
+            LabelStatus.Content = $"Listening enabled for {_targetWindowTitle}";
             _timer.Start();
         }
 
@@ -129,60 +129,60 @@ namespace MouseClickerUI
         {
             _listening = false;
             _clicking = false;
-            labelStatus.Content = "Listening disabled";
+            LabelStatus.Content = "Listening disabled";
             _timer.Stop();
         }
 
         private void SliderDelay_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (textBoxDelay != null)
+            if (TextBoxDelay != null)
             {
                 _clickDelay = (int)e.NewValue;
-                textBoxDelay.Text = _clickDelay.ToString();
+                TextBoxDelay.Text = _clickDelay.ToString();
             }
         }
 
         private void TextBoxDelay_KeyUp(object sender, KeyEventArgs e)
         {
-            if (int.TryParse(textBoxDelay.Text, out int newDelay))
+            if (int.TryParse(TextBoxDelay.Text, out int newDelay))
             {
-                if (newDelay < (int)sliderDelay.Minimum)
+                if (newDelay < (int)SliderDelay.Minimum)
                 {
-                    newDelay = (int)sliderDelay.Minimum;
+                    newDelay = (int)SliderDelay.Minimum;
                 }
-                else if (newDelay > (int)sliderDelay.Maximum)
+                else if (newDelay > (int)SliderDelay.Maximum)
                 {
-                    newDelay = (int)sliderDelay.Maximum;
+                    newDelay = (int)SliderDelay.Maximum;
                 }
 
                 _clickDelay = newDelay;
-                sliderDelay.Value = newDelay;
+                SliderDelay.Value = newDelay;
             }
             else
             {
-                textBoxDelay.Text = _clickDelay.ToString();
+                TextBoxDelay.Text = _clickDelay.ToString();
             }
         }
 
         private void TextBoxDelay_LostFocus(object sender, RoutedEventArgs e)
         {
-            if (int.TryParse(textBoxDelay.Text, out int newDelay))
+            if (int.TryParse(TextBoxDelay.Text, out int newDelay))
             {
-                if (newDelay < (int)sliderDelay.Minimum)
+                if (newDelay < (int)SliderDelay.Minimum)
                 {
-                    newDelay = (int)sliderDelay.Minimum;
+                    newDelay = (int)SliderDelay.Minimum;
                 }
-                else if (newDelay > (int)sliderDelay.Maximum)
+                else if (newDelay > (int)SliderDelay.Maximum)
                 {
-                    newDelay = (int)sliderDelay.Maximum;
+                    newDelay = (int)SliderDelay.Maximum;
                 }
 
                 _clickDelay = newDelay;
-                sliderDelay.Value = newDelay;
+                SliderDelay.Value = newDelay;
             }
             else
             {
-                textBoxDelay.Text = _clickDelay.ToString();
+                TextBoxDelay.Text = _clickDelay.ToString();
             }
         }
 
@@ -206,7 +206,7 @@ namespace MouseClickerUI
             if (isKey1Pressed && !_prevEnableListeningState)
             {
                 _listening = true;
-                labelStatus.Content = $"Listening enabled at {DateTime.Now}";
+                LabelStatus.Content = $"Listening enabled at {DateTime.Now}";
             }
 
             _prevEnableListeningState = isKey1Pressed;
@@ -215,7 +215,7 @@ namespace MouseClickerUI
             {
                 _listening = false;
                 _clicking = false;
-                labelStatus.Content = $"Listening disabled at {DateTime.Now}";
+                LabelStatus.Content = $"Listening disabled at {DateTime.Now}";
             }
 
             _prevDisableListeningState = isKey0Pressed;
@@ -223,7 +223,7 @@ namespace MouseClickerUI
             if (_listening && isKey8Pressed && !_prevEnableClickingState)
             {
                 _clicking = true;
-                labelStatus.Content = $"Mouse clicking enabled at {DateTime.Now}";
+                LabelStatus.Content = $"Mouse clicking enabled at {DateTime.Now}";
             }
 
             _prevEnableClickingState = isKey8Pressed;
@@ -231,7 +231,7 @@ namespace MouseClickerUI
             if (_listening && isKey9Pressed && _clicking)
             {
                 _clicking = false;
-                labelStatus.Content = $"Mouse clicking disabled at {DateTime.Now}";
+                LabelStatus.Content = $"Mouse clicking disabled at {DateTime.Now}";
             }
 
             if (_clicking)
