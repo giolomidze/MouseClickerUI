@@ -45,7 +45,3 @@ Mouse Clicker UI is a Windows application that allows users to automate mouse cl
 
 This tool is for educational and productivity purposes only. Use responsibly and at your own risk. The developers are
 not responsible for any unintended consequences of using this application.
-
-## Contributing
-
-[If you want to allow contributions, specify how others can contribute to the project.]
