@@ -18,7 +18,7 @@ namespace MouseClickerUI
         private static int _clickDelay = 100;
         private readonly DispatcherTimer _timer;
         private readonly DispatcherTimer _pollingTimer;
-        private List<string> _cachedProcessNames = new List<string>();
+        private List<string> _cachedProcessNames = [];
 
         [DllImport("user32.dll")]
         private static extern void mouse_event(uint dwFlags, int dx, int dy, uint dwData, UIntPtr dwExtraInfo);
