@@ -4,22 +4,22 @@
         Title="Mouse Clicker" Height="300" Width="400">
     <StackPanel Margin="10">
         <Label Content="Select an application:" VerticalAlignment="Top" HorizontalAlignment="Left" />
-        <ComboBox Name="comboBoxProcesses" Width="360" Height="30" VerticalAlignment="Top" Margin="0,5,0,0" />
-        <TextBlock Name="textBlockValidationMessage" Foreground="Red" Visibility="Collapsed" VerticalAlignment="Top"
+        <ComboBox Name="ComboBoxProcesses" Width="360" Height="30" VerticalAlignment="Top" Margin="0,5,0,0" />
+        <TextBlock Name="TextBlockValidationMessage" Foreground="Red" Visibility="Collapsed" VerticalAlignment="Top"
                    HorizontalAlignment="Left" Margin="0,5,0,0" />
         <StackPanel Orientation="Horizontal" Margin="10,5,0,0" VerticalAlignment="Top">
             <Label Content="Delay (ms):" VerticalAlignment="Center" HorizontalAlignment="Left" />
-            <Slider Name="sliderDelay" Minimum="1" Maximum="1000" Value="100" Width="200" Margin="5,0,0,0"
+            <Slider Name="SliderDelay" Minimum="1" Maximum="1000" Value="100" Width="200" Margin="5,0,0,0"
                     ValueChanged="SliderDelay_ValueChanged" />
-            <TextBox Name="textBoxDelay" Text="100" Width="50" Margin="5,0,0,0" KeyUp="TextBoxDelay_KeyUp"
+            <TextBox Name="TextBoxDelay" Text="100" Width="50" Margin="5,0,0,0" KeyUp="TextBoxDelay_KeyUp"
                      LostFocus="TextBoxDelay_LostFocus" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-            <Button Name="buttonStartListening" Content="Start Listening" Width="120" Height="30"
+            <Button Name="ButtonStartListening" Content="Start Listening" Width="120" Height="30"
                     Click="buttonStartListening_Click" />
-            <Button Name="buttonStopListening" Content="Stop Listening" Width="120" Height="30" Margin="10,0,0,0"
+            <Button Name="ButtonStopListening" Content="Stop Listening" Width="120" Height="30" Margin="10,0,0,0"
                     Click="buttonStopListening_Click" />
         </StackPanel>
-        <Label Name="labelStatus" Content="Status" Margin="0,10,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
+        <Label Name="LabelStatus" Content="Status" Margin="0,10,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
     </StackPanel>
 </Window>
