@@ -223,12 +223,7 @@ namespace MouseClickerUI
             // Move mouse to specified coordinates
             SetCursorPos(_clickXCoordinate, _clickYCoordinate);
 
-            // Trigger left-click 5 times
-            for (int i = 0; i < 5; i++)
-            {
-                mouse_event(MouseEventLeftDown, 0, 0, 0, UIntPtr.Zero);
-                mouse_event(MouseEventLeftUp, 0, 0, 0, UIntPtr.Zero);
-            }
+            // Left-click actions have been removed as per your request
         }
 
         private void SliderDelay_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
