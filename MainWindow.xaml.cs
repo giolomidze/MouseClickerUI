@@ -17,6 +17,8 @@ namespace MouseClickerUI
         private static bool _debugEnabled;
         private static string _targetWindowTitle = string.Empty;
         private static int _clickDelay = 100;
+        private static int _clickXCoordinate = 2511;
+        private static int _clickYCoordinate = 1117;
         private readonly DispatcherTimer _timer;
         private readonly DispatcherTimer _pollingTimer;
         private List<string> _cachedProcessNames = [];
@@ -210,8 +212,8 @@ namespace MouseClickerUI
             // Add delay to allow window to appear
             await Task.Delay(10);
 
-            // Move mouse to specified coordinates (2511, 1117)
-            SetCursorPos(2511, 1117);
+            // Move mouse to specified coordinates
+            SetCursorPos(_clickXCoordinate, _clickYCoordinate);
 
             // Trigger left-click 5 times
             for (int i = 0; i < 5; i++)
@@ -271,6 +273,54 @@ namespace MouseClickerUI
             else
             {
                 TextBoxDelay.Text = _clickDelay.ToString();
+            }
+        }
+
+        private void TextBoxXCoordinate_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (int.TryParse(TextBoxXCoordinate.Text, out int newXCoordinate))
+            {
+                _clickXCoordinate = newXCoordinate;
+            }
+            else
+            {
+                TextBoxXCoordinate.Text = _clickXCoordinate.ToString();
+            }
+        }
+
+        private void TextBoxXCoordinate_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (int.TryParse(TextBoxXCoordinate.Text, out int newXCoordinate))
+            {
+                _clickXCoordinate = newXCoordinate;
+            }
+            else
+            {
+                TextBoxXCoordinate.Text = _clickXCoordinate.ToString();
+            }
+        }
+
+        private void TextBoxYCoordinate_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (int.TryParse(TextBoxYCoordinate.Text, out int newYCoordinate))
+            {
+                _clickYCoordinate = newYCoordinate;
+            }
+            else
+            {
+                TextBoxYCoordinate.Text = _clickYCoordinate.ToString();
+            }
+        }
+
+        private void TextBoxYCoordinate_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (int.TryParse(TextBoxYCoordinate.Text, out int newYCoordinate))
+            {
+                _clickYCoordinate = newYCoordinate;
+            }
+            else
+            {
+                TextBoxYCoordinate.Text = _clickYCoordinate.ToString();
             }
         }
 
