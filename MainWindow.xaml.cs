@@ -14,6 +14,7 @@ namespace MouseClickerUI
         private static bool _prevEnableListeningState;
         private static bool _prevDisableListeningState;
         private static bool _prevEnableClickingState;
+        private static bool _debugEnabled;
         private static string _targetWindowTitle = string.Empty;
         private static int _clickDelay = 100;
         private readonly DispatcherTimer _timer;
@@ -179,17 +180,27 @@ namespace MouseClickerUI
             const int VK_XBUTTON1 = 0x05;
             const int VK_XBUTTON2 = 0x06;
 
-            if (IsKeyPressed(VK_XBUTTON1) || IsKeyPressed(VK_XBUTTON2))
+            if (IsKeyPressed(VK_XBUTTON1))
             {
-                TriggerMouseActions();
+                TriggerMouseActions("XButton1");
+            }
+            else if (IsKeyPressed(VK_XBUTTON2))
+            {
+                TriggerMouseActions("XButton2");
             }
         }
 
-        private async void TriggerMouseActions()
+        private async void TriggerMouseActions(string buttonName)
         {
             if (!IsTargetWindow())
             {
                 return;
+            }
+
+            if (_debugEnabled)
+            {
+                LabelStatus.Content = $"{buttonName} clicked at {DateTime.Now}";
+                Debug.WriteLine($"{buttonName} clicked at {DateTime.Now}");
             }
 
             // Trigger right-click
@@ -288,6 +299,12 @@ namespace MouseClickerUI
             _clicking = false;
             LabelStatus.Content = "Listening disabled";
             _timer.Stop();
+        }
+
+        private void buttonToggleDebug_Click(object sender, RoutedEventArgs e)
+        {
+            _debugEnabled = !_debugEnabled;
+            LabelStatus.Content = _debugEnabled ? "Debug mode enabled" : "Debug mode disabled";
         }
     }
 }
