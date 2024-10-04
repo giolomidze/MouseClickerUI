@@ -23,8 +23,13 @@ namespace MouseClickerUI
         [DllImport("user32.dll")]
         private static extern void mouse_event(uint dwFlags, int dx, int dy, uint dwData, UIntPtr dwExtraInfo);
 
+        [DllImport("user32.dll")]
+        private static extern bool SetCursorPos(int X, int Y);
+
         private const uint MouseEventLetdown = 0x02;
         private const uint MouseEventLeftUp = 0x04;
+        private const uint MouseEventRightDown = 0x08;
+        private const uint MouseEventRightUp = 0x10;
 
         [DllImport("user32.dll")]
         private static extern short GetKeyState(int nVirtKey);
@@ -106,89 +111,10 @@ namespace MouseClickerUI
             LoadProcesses(selectedProcessName);
         }
 
-        private void buttonStartListening_Click(object sender, RoutedEventArgs e)
-        {
-            if (ComboBoxProcesses.SelectedItem == null)
-            {
-                TextBlockValidationMessage.Text = "Please select an application first.";
-                TextBlockValidationMessage.Visibility = Visibility.Visible;
-                ComboBoxProcesses.Focus();
-                MessageBox.Show("Please select an application first.", "Validation", MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
-                return;
-            }
-
-            TextBlockValidationMessage.Visibility = Visibility.Collapsed;
-            _targetWindowTitle = ((Process)ComboBoxProcesses.SelectedItem).MainWindowTitle;
-            _listening = true;
-            LabelStatus.Content = $"Listening enabled for {_targetWindowTitle}";
-            _timer.Start();
-        }
-
-        private void buttonStopListening_Click(object sender, RoutedEventArgs e)
-        {
-            _listening = false;
-            _clicking = false;
-            LabelStatus.Content = "Listening disabled";
-            _timer.Stop();
-        }
-
-        private void SliderDelay_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            if (TextBoxDelay != null)
-            {
-                _clickDelay = (int)e.NewValue;
-                TextBoxDelay.Text = _clickDelay.ToString();
-            }
-        }
-
-        private void TextBoxDelay_KeyUp(object sender, KeyEventArgs e)
-        {
-            if (int.TryParse(TextBoxDelay.Text, out int newDelay))
-            {
-                if (newDelay < (int)SliderDelay.Minimum)
-                {
-                    newDelay = (int)SliderDelay.Minimum;
-                }
-                else if (newDelay > (int)SliderDelay.Maximum)
-                {
-                    newDelay = (int)SliderDelay.Maximum;
-                }
-
-                _clickDelay = newDelay;
-                SliderDelay.Value = newDelay;
-            }
-            else
-            {
-                TextBoxDelay.Text = _clickDelay.ToString();
-            }
-        }
-
-        private void TextBoxDelay_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (int.TryParse(TextBoxDelay.Text, out int newDelay))
-            {
-                if (newDelay < (int)SliderDelay.Minimum)
-                {
-                    newDelay = (int)SliderDelay.Minimum;
-                }
-                else if (newDelay > (int)SliderDelay.Maximum)
-                {
-                    newDelay = (int)SliderDelay.Maximum;
-                }
-
-                _clickDelay = newDelay;
-                SliderDelay.Value = newDelay;
-            }
-            else
-            {
-                TextBoxDelay.Text = _clickDelay.ToString();
-            }
-        }
-
         private void Timer_Tick(object? sender, EventArgs e)
         {
             UpdateMouseClickingState();
+            CheckMouseSideButtonClick();
         }
 
         private void UpdateMouseClickingState()
@@ -245,6 +171,32 @@ namespace MouseClickerUI
             mouse_event(MouseEventLetdown, 0, 0, 0, UIntPtr.Zero);
             mouse_event(MouseEventLeftUp, 0, 0, 0, UIntPtr.Zero);
             await Task.Delay(_clickDelay);
+        }
+
+        private void CheckMouseSideButtonClick()
+        {
+            // Virtual Key Codes for Side Buttons (XButton1 and XButton2)
+            const int VK_XBUTTON1 = 0x05;
+            const int VK_XBUTTON2 = 0x06;
+
+            if (IsKeyPressed(VK_XBUTTON1) || IsKeyPressed(VK_XBUTTON2))
+            {
+                TriggerMouseActions();
+            }
+        }
+
+        private void TriggerMouseActions()
+        {
+            // Move mouse to specified coordinates (2511, 1117)
+            SetCursorPos(2511, 1117);
+
+            // Trigger right-click
+            mouse_event(MouseEventRightDown, 0, 0, 0, UIntPtr.Zero);
+            mouse_event(MouseEventRightUp, 0, 0, 0, UIntPtr.Zero);
+
+            // Trigger left-click
+            mouse_event(MouseEventLetdown, 0, 0, 0, UIntPtr.Zero);
+            mouse_event(MouseEventLeftUp, 0, 0, 0, UIntPtr.Zero);
         }
     }
 }
