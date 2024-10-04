@@ -7,13 +7,14 @@ using System.Windows.Threading;
 
 namespace MouseClickerUI
 {
-    public partial class MainWindow
+    public partial class MainWindow : Window
     {
         private static bool _clicking;
         private static bool _listening;
         private static bool _prevEnableListeningState;
         private static bool _prevDisableListeningState;
         private static bool _prevEnableClickingState;
+        private static bool _prevDisableClickingState;
         private static bool _debugEnabled;
         private static string _targetWindowTitle = string.Empty;
         private static int _clickDelay = 100;
@@ -21,7 +22,7 @@ namespace MouseClickerUI
         private static int _clickYCoordinate = 1117;
         private readonly DispatcherTimer _timer;
         private readonly DispatcherTimer _pollingTimer;
-        private List<string> _cachedProcessNames = [];
+        private List<string> _cachedProcessNames = new List<string>();
 
         [DllImport("user32.dll")]
         private static extern void mouse_event(uint dwFlags, int dx, int dy, uint dwData, UIntPtr dwExtraInfo);
@@ -29,7 +30,7 @@ namespace MouseClickerUI
         [DllImport("user32.dll")]
         private static extern bool SetCursorPos(int X, int Y);
 
-        private const uint MouseEventLetdown = 0x02;
+        private const uint MouseEventLeftDown = 0x02;
         private const uint MouseEventLeftUp = 0x04;
         private const uint MouseEventRightDown = 0x08;
         private const uint MouseEventRightUp = 0x10;
@@ -86,7 +87,7 @@ namespace MouseClickerUI
             TextBlockValidationMessage.Visibility = Visibility.Collapsed;
         }
 
-        private void LoadProcesses(string? selectedProcessName = null)
+        private void LoadProcesses(string selectedProcessName = null)
         {
             var processes = Process.GetProcesses()
                 .Where(p => !string.IsNullOrEmpty(p.MainWindowTitle))
@@ -107,14 +108,14 @@ namespace MouseClickerUI
             }
         }
 
-        private void PollingTimer_Tick(object? sender, EventArgs e)
+        private void PollingTimer_Tick(object sender, EventArgs e)
         {
             var selectedProcess = ComboBoxProcesses.SelectedItem as Process;
             var selectedProcessName = selectedProcess?.ProcessName;
             LoadProcesses(selectedProcessName);
         }
 
-        private void Timer_Tick(object? sender, EventArgs e)
+        private void Timer_Tick(object sender, EventArgs e)
         {
             UpdateMouseClickingState();
             CheckMouseSideButtonClick();
@@ -157,11 +158,13 @@ namespace MouseClickerUI
 
             _prevEnableClickingState = isKey8Pressed;
 
-            if (_listening && isKey9Pressed && _clicking)
+            if (_listening && isKey9Pressed && !_prevDisableClickingState)
             {
                 _clicking = false;
                 LabelStatus.Content = $"Mouse clicking disabled at {DateTime.Now}";
             }
+
+            _prevDisableClickingState = isKey9Pressed;
 
             if (_clicking)
             {
@@ -171,13 +174,18 @@ namespace MouseClickerUI
 
         private static async void SimulateMouseClick()
         {
-            mouse_event(MouseEventLetdown, 0, 0, 0, UIntPtr.Zero);
+            mouse_event(MouseEventLeftDown, 0, 0, 0, UIntPtr.Zero);
             mouse_event(MouseEventLeftUp, 0, 0, 0, UIntPtr.Zero);
             await Task.Delay(_clickDelay);
         }
 
         private void CheckMouseSideButtonClick()
         {
+            if (!_listening)
+            {
+                return;
+            }
+
             // Virtual Key Codes for Side Buttons (XButton1 and XButton2)
             const int VK_XBUTTON1 = 0x05;
             const int VK_XBUTTON2 = 0x06;
@@ -194,7 +202,7 @@ namespace MouseClickerUI
 
         private async void TriggerMouseActions(string buttonName)
         {
-            if (!IsTargetWindow())
+            if (!_listening || !IsTargetWindow())
             {
                 return;
             }
@@ -218,7 +226,7 @@ namespace MouseClickerUI
             // Trigger left-click 5 times
             for (int i = 0; i < 5; i++)
             {
-                mouse_event(MouseEventLetdown, 0, 0, 0, UIntPtr.Zero);
+                mouse_event(MouseEventLeftDown, 0, 0, 0, UIntPtr.Zero);
                 mouse_event(MouseEventLeftUp, 0, 0, 0, UIntPtr.Zero);
             }
         }
