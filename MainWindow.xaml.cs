@@ -185,18 +185,109 @@ namespace MouseClickerUI
             }
         }
 
-        private void TriggerMouseActions()
+        private async void TriggerMouseActions()
         {
-            // Move mouse to specified coordinates (2511, 1117)
-            SetCursorPos(2511, 1117);
+            if (!IsTargetWindow())
+            {
+                return;
+            }
 
             // Trigger right-click
             mouse_event(MouseEventRightDown, 0, 0, 0, UIntPtr.Zero);
             mouse_event(MouseEventRightUp, 0, 0, 0, UIntPtr.Zero);
 
-            // Trigger left-click
-            mouse_event(MouseEventLetdown, 0, 0, 0, UIntPtr.Zero);
-            mouse_event(MouseEventLeftUp, 0, 0, 0, UIntPtr.Zero);
+            // Add delay to allow window to appear
+            await Task.Delay(10);
+
+            // Move mouse to specified coordinates (2511, 1117)
+            SetCursorPos(2511, 1117);
+
+            // Trigger left-click 5 times
+            for (int i = 0; i < 5; i++)
+            {
+                mouse_event(MouseEventLetdown, 0, 0, 0, UIntPtr.Zero);
+                mouse_event(MouseEventLeftUp, 0, 0, 0, UIntPtr.Zero);
+            }
+        }
+
+        private void SliderDelay_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (TextBoxDelay != null)
+            {
+                _clickDelay = (int)e.NewValue;
+                TextBoxDelay.Text = _clickDelay.ToString();
+            }
+        }
+
+        private void TextBoxDelay_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (int.TryParse(TextBoxDelay.Text, out int newDelay))
+            {
+                if (newDelay < (int)SliderDelay.Minimum)
+                {
+                    newDelay = (int)SliderDelay.Minimum;
+                }
+                else if (newDelay > (int)SliderDelay.Maximum)
+                {
+                    newDelay = (int)SliderDelay.Maximum;
+                }
+
+                _clickDelay = newDelay;
+                SliderDelay.Value = newDelay;
+            }
+            else
+            {
+                TextBoxDelay.Text = _clickDelay.ToString();
+            }
+        }
+
+        private void TextBoxDelay_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (int.TryParse(TextBoxDelay.Text, out int newDelay))
+            {
+                if (newDelay < (int)SliderDelay.Minimum)
+                {
+                    newDelay = (int)SliderDelay.Minimum;
+                }
+                else if (newDelay > (int)SliderDelay.Maximum)
+                {
+                    newDelay = (int)SliderDelay.Maximum;
+                }
+
+                _clickDelay = newDelay;
+                SliderDelay.Value = newDelay;
+            }
+            else
+            {
+                TextBoxDelay.Text = _clickDelay.ToString();
+            }
+        }
+
+        private void buttonStartListening_Click(object sender, RoutedEventArgs e)
+        {
+            if (ComboBoxProcesses.SelectedItem == null)
+            {
+                TextBlockValidationMessage.Text = "Please select an application first.";
+                TextBlockValidationMessage.Visibility = Visibility.Visible;
+                ComboBoxProcesses.Focus();
+                MessageBox.Show("Please select an application first.", "Validation", MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+                return;
+            }
+
+            TextBlockValidationMessage.Visibility = Visibility.Collapsed;
+            _targetWindowTitle = ((Process)ComboBoxProcesses.SelectedItem).MainWindowTitle;
+            _listening = true;
+            LabelStatus.Content = $"Listening enabled for {_targetWindowTitle}";
+            _timer.Start();
+        }
+
+        private void buttonStopListening_Click(object sender, RoutedEventArgs e)
+        {
+            _listening = false;
+            _clicking = false;
+            LabelStatus.Content = "Listening disabled";
+            _timer.Stop();
         }
     }
 }
