@@ -7,6 +7,22 @@ using System.Windows.Threading;
 
 namespace MouseClickerUI
 {
+    public class ProcessInfo
+    {
+        public string ProcessName { get; set; } = string.Empty;
+        public string MainWindowTitle { get; set; } = string.Empty;
+        public int Id { get; set; }
+        public IntPtr MainWindowHandle { get; set; }
+
+        public ProcessInfo(string processName, string mainWindowTitle, int id, IntPtr mainWindowHandle)
+        {
+            ProcessName = processName;
+            MainWindowTitle = mainWindowTitle;
+            Id = id;
+            MainWindowHandle = mainWindowHandle;
+        }
+    }
+
     public partial class MainWindow
     {
         private static bool _clicking;
@@ -14,11 +30,15 @@ namespace MouseClickerUI
         private static bool _prevEnableListeningState;
         private static bool _prevDisableListeningState;
         private static bool _prevEnableClickingState;
+        private static int _targetProcessId = 0;
+        private static IntPtr _targetWindowHandle = IntPtr.Zero;
+        private static string _targetProcessName = string.Empty;
         private static string _targetWindowTitle = string.Empty;
-        private static int _clickDelay = 100;
+        private static int _clickDelay = 1;
         private readonly DispatcherTimer _timer;
         private readonly DispatcherTimer _pollingTimer;
         private List<string> _cachedProcessNames = [];
+        private readonly StringBuilder _windowTitleBuilder = new StringBuilder(256);
 
         [DllImport("user32.dll")]
         private static extern void mouse_event(uint dwFlags, int dx, int dy, uint dwData, UIntPtr dwExtraInfo);
@@ -35,6 +55,9 @@ namespace MouseClickerUI
         [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         private static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
 
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
         private static bool IsKeyPressed(int keyCode)
         {
             return (GetKeyState(keyCode) & 0x8000) != 0;
@@ -42,15 +65,71 @@ namespace MouseClickerUI
 
         private static bool IsTargetWindow()
         {
-            if (string.IsNullOrEmpty(_targetWindowTitle))
+            if (_targetProcessId == 0 || _targetWindowHandle == IntPtr.Zero)
             {
                 return false;
             }
 
             var foregroundWindow = GetForegroundWindow();
-            var windowText = new StringBuilder(256);
-            return GetWindowText(foregroundWindow, windowText, windowText.Capacity) > 0 &&
-                   windowText.ToString().Contains(_targetWindowTitle);
+            
+            // Primary check: Verify foreground window handle matches stored handle
+            if (foregroundWindow == _targetWindowHandle)
+            {
+                return true;
+            }
+
+            // Secondary check: Verify Process ID matches
+            if (GetWindowThreadProcessId(foregroundWindow, out uint processId) != 0 && 
+                processId == _targetProcessId)
+            {
+                // Window handle changed but same process - update stored handle
+                _targetWindowHandle = foregroundWindow;
+                return true;
+            }
+
+            // Fallback: Attempt re-detection by Process Name
+            if (!string.IsNullOrEmpty(_targetProcessName))
+            {
+                try
+                {
+                    var processes = Process.GetProcessesByName(_targetProcessName)
+                        .Where(p => !string.IsNullOrEmpty(p.MainWindowTitle))
+                        .ToList();
+
+                    if (processes.Count > 0)
+                    {
+                        // Find the process with matching window title (if available)
+                        var matchingProcess = processes.FirstOrDefault(p => 
+                            !string.IsNullOrEmpty(_targetWindowTitle) && 
+                            p.MainWindowTitle.Contains(_targetWindowTitle)) ?? processes.First();
+
+                        _targetProcessId = matchingProcess.Id;
+                        _targetWindowHandle = matchingProcess.MainWindowHandle;
+                        _targetWindowTitle = matchingProcess.MainWindowTitle;
+                        
+                        // Dispose all Process objects
+                        foreach (var process in processes)
+                        {
+                            process.Dispose();
+                        }
+                        
+                        return true;
+                    }
+                    
+                    // Dispose all Process objects if no match found
+                    foreach (var process in processes)
+                    {
+                        process.Dispose();
+                    }
+                }
+                catch
+                {
+                    // Process no longer exists or access denied
+                    return false;
+                }
+            }
+
+            return false;
         }
 
         public MainWindow()
@@ -87,9 +166,27 @@ namespace MouseClickerUI
 
             var processNames = processes.Select(p => p.ProcessName).ToList();
 
-            if (_cachedProcessNames.SequenceEqual(processNames)) return;
+            if (_cachedProcessNames.SequenceEqual(processNames)) 
+            {
+                // Dispose all Process objects if no changes needed
+                foreach (var process in processes)
+                {
+                    process.Dispose();
+                }
+                return;
+            }
+
             _cachedProcessNames = processNames;
-            ComboBoxProcesses.ItemsSource = processes;
+            
+            // Create ProcessInfo objects and dispose Process objects immediately
+            var processInfos = processes.Select(p => 
+            {
+                var processInfo = new ProcessInfo(p.ProcessName, p.MainWindowTitle, p.Id, p.MainWindowHandle);
+                p.Dispose();
+                return processInfo;
+            }).ToList();
+
+            ComboBoxProcesses.ItemsSource = processInfos;
             ComboBoxProcesses.DisplayMemberPath = "MainWindowTitle";
             ComboBoxProcesses.SelectedValuePath = "ProcessName";
 
@@ -101,9 +198,34 @@ namespace MouseClickerUI
 
         private void PollingTimer_Tick(object? sender, EventArgs e)
         {
-            var selectedProcess = ComboBoxProcesses.SelectedItem as Process;
+            var selectedProcess = ComboBoxProcesses.SelectedItem as ProcessInfo;
             var selectedProcessName = selectedProcess?.ProcessName;
             LoadProcesses(selectedProcessName);
+
+            // Validate target process existence if listening is active
+            if (_listening && _targetProcessId > 0)
+            {
+                try
+                {
+                    using var targetProcess = Process.GetProcessById(_targetProcessId);
+                    if (targetProcess.HasExited)
+                    {
+                        // Target process has terminated
+                        _listening = false;
+                        _clicking = false;
+                        LabelStatus.Content = "Target application closed";
+                        _timer.Stop();
+                    }
+                }
+                catch (ArgumentException)
+                {
+                    // Process no longer exists
+                    _listening = false;
+                    _clicking = false;
+                    LabelStatus.Content = "Target application closed";
+                    _timer.Stop();
+                }
+            }
         }
 
         private void buttonStartListening_Click(object sender, RoutedEventArgs e)
@@ -119,7 +241,14 @@ namespace MouseClickerUI
             }
 
             TextBlockValidationMessage.Visibility = Visibility.Collapsed;
-            _targetWindowTitle = ((Process)ComboBoxProcesses.SelectedItem).MainWindowTitle;
+            var selectedProcess = (ProcessInfo)ComboBoxProcesses.SelectedItem;
+            
+            // Capture all identifiers for robust targeting
+            _targetProcessId = selectedProcess.Id;
+            _targetWindowHandle = selectedProcess.MainWindowHandle;
+            _targetProcessName = selectedProcess.ProcessName;
+            _targetWindowTitle = selectedProcess.MainWindowTitle;
+            
             _listening = true;
             LabelStatus.Content = $"Listening enabled for {_targetWindowTitle}";
             _timer.Start();
@@ -139,6 +268,12 @@ namespace MouseClickerUI
             {
                 _clickDelay = (int)e.NewValue;
                 TextBoxDelay.Text = _clickDelay.ToString();
+                
+                // Update timer interval based on click delay
+                if (_timer != null)
+                {
+                    _timer.Interval = TimeSpan.FromMilliseconds(Math.Max(10, _clickDelay));
+                }
             }
         }
 
@@ -157,6 +292,12 @@ namespace MouseClickerUI
 
                 _clickDelay = newDelay;
                 SliderDelay.Value = newDelay;
+                
+                // Update timer interval based on click delay
+                if (_timer != null)
+                {
+                    _timer.Interval = TimeSpan.FromMilliseconds(Math.Max(10, _clickDelay));
+                }
             }
             else
             {
@@ -179,6 +320,12 @@ namespace MouseClickerUI
 
                 _clickDelay = newDelay;
                 SliderDelay.Value = newDelay;
+                
+                // Update timer interval based on click delay
+                if (_timer != null)
+                {
+                    _timer.Interval = TimeSpan.FromMilliseconds(Math.Max(10, _clickDelay));
+                }
             }
             else
             {
@@ -193,9 +340,21 @@ namespace MouseClickerUI
 
         private void UpdateMouseClickingState()
         {
-            if (!IsTargetWindow())
+            var wasTargetWindow = IsTargetWindow();
+            if (!wasTargetWindow)
             {
                 return;
+            }
+
+            // Check if we just re-detected the target window
+            if (_targetWindowHandle != IntPtr.Zero)
+            {
+                var foregroundWindow = GetForegroundWindow();
+                if (foregroundWindow == _targetWindowHandle && _listening)
+                {
+                    // Non-intrusive status update for re-detection
+                    LabelStatus.Content = $"Target window re-detected at {DateTime.Now:HH:mm:ss}";
+                }
             }
 
             var isKey1Pressed = IsKeyPressed(0x31); // Key '1'
@@ -240,11 +399,10 @@ namespace MouseClickerUI
             }
         }
 
-        private static async void SimulateMouseClick()
+        private static void SimulateMouseClick()
         {
             mouse_event(MouseEventLetdown, 0, 0, 0, UIntPtr.Zero);
             mouse_event(MouseEventLeftUp, 0, 0, 0, UIntPtr.Zero);
-            await Task.Delay(_clickDelay);
         }
     }
 }
