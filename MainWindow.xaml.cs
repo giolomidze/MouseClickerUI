@@ -266,7 +266,7 @@ namespace MouseClickerUI
                 TextBoxDelay.Text = _clickDelay.ToString();
                 
                 // Update timer interval based on click delay
-                _timer.Interval = TimeSpan.FromMilliseconds(Math.Max(10, _clickDelay));
+                _timer.Interval = TimeSpan.FromMilliseconds(_clickDelay);
             }
         }
 
@@ -287,7 +287,7 @@ namespace MouseClickerUI
                 SliderDelay.Value = newDelay;
                 
                 // Update timer interval based on click delay
-                _timer.Interval = TimeSpan.FromMilliseconds(Math.Max(10, _clickDelay));
+                _timer.Interval = TimeSpan.FromMilliseconds(_clickDelay);
             }
             else
             {
@@ -312,7 +312,7 @@ namespace MouseClickerUI
                 SliderDelay.Value = newDelay;
                 
                 // Update timer interval based on click delay
-                _timer.Interval = TimeSpan.FromMilliseconds(Math.Max(10, _clickDelay));
+                _timer.Interval = TimeSpan.FromMilliseconds(_clickDelay);
             }
             else
             {
