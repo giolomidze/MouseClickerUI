@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
@@ -9,8 +8,8 @@ namespace MouseClickerUI
 {
     public class ProcessInfo
     {
-        public string ProcessName { get; set; } = string.Empty;
-        public string MainWindowTitle { get; set; } = string.Empty;
+        public string ProcessName { get; set; }
+        public string MainWindowTitle { get; set; }
         public int Id { get; set; }
         public IntPtr MainWindowHandle { get; set; }
 
@@ -30,7 +29,7 @@ namespace MouseClickerUI
         private static bool _prevEnableListeningState;
         private static bool _prevDisableListeningState;
         private static bool _prevEnableClickingState;
-        private static int _targetProcessId = 0;
+        private static int _targetProcessId;
         private static IntPtr _targetWindowHandle = IntPtr.Zero;
         private static string _targetProcessName = string.Empty;
         private static string _targetWindowTitle = string.Empty;
@@ -38,7 +37,6 @@ namespace MouseClickerUI
         private readonly DispatcherTimer _timer;
         private readonly DispatcherTimer _pollingTimer;
         private List<string> _cachedProcessNames = [];
-        private readonly StringBuilder _windowTitleBuilder = new StringBuilder(256);
 
         [DllImport("user32.dll")]
         private static extern void mouse_event(uint dwFlags, int dx, int dy, uint dwData, UIntPtr dwExtraInfo);
@@ -52,8 +50,6 @@ namespace MouseClickerUI
         [DllImport("user32.dll", SetLastError = true)]
         private static extern IntPtr GetForegroundWindow();
 
-        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        private static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
@@ -270,10 +266,7 @@ namespace MouseClickerUI
                 TextBoxDelay.Text = _clickDelay.ToString();
                 
                 // Update timer interval based on click delay
-                if (_timer != null)
-                {
-                    _timer.Interval = TimeSpan.FromMilliseconds(Math.Max(10, _clickDelay));
-                }
+                _timer.Interval = TimeSpan.FromMilliseconds(Math.Max(10, _clickDelay));
             }
         }
 
@@ -294,10 +287,7 @@ namespace MouseClickerUI
                 SliderDelay.Value = newDelay;
                 
                 // Update timer interval based on click delay
-                if (_timer != null)
-                {
-                    _timer.Interval = TimeSpan.FromMilliseconds(Math.Max(10, _clickDelay));
-                }
+                _timer.Interval = TimeSpan.FromMilliseconds(Math.Max(10, _clickDelay));
             }
             else
             {
@@ -322,10 +312,7 @@ namespace MouseClickerUI
                 SliderDelay.Value = newDelay;
                 
                 // Update timer interval based on click delay
-                if (_timer != null)
-                {
-                    _timer.Interval = TimeSpan.FromMilliseconds(Math.Max(10, _clickDelay));
-                }
+                _timer.Interval = TimeSpan.FromMilliseconds(Math.Max(10, _clickDelay));
             }
             else
             {
