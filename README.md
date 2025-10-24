@@ -39,7 +39,66 @@ Mouse Clicker UI is a Windows application that allows users to automate mouse cl
 ## Requirements
 
 - Windows operating system
-- .NET Framework (version specified in the project file)
+- .NET 9.0 SDK or later
+
+## Building and Publishing
+
+### Prerequisites
+
+1. Install .NET 9.0 SDK from [Microsoft's official download page](https://dotnet.microsoft.com/download/dotnet/9.0)
+2. Ensure you have Visual Studio 2022 or VS Code with C# extension (optional but recommended)
+
+### Building the Application
+
+#### Debug Build
+```bash
+dotnet build
+```
+
+#### Release Build
+```bash
+dotnet build --configuration Release
+```
+
+### Publishing the Application
+
+The project is configured for single-file publishing with the following settings:
+- **PublishSingleFile**: true
+- **SelfContained**: true  
+- **RuntimeIdentifier**: win-x64
+- **PublishReadyToRun**: true
+
+#### Publish for Windows x64 (Self-Contained)
+```bash
+dotnet publish --configuration Release --runtime win-x64 --self-contained true
+```
+
+This will create a single executable file in:
+```
+bin/Release/net9.0-windows/win-x64/publish/MouseClickerUI.exe
+```
+
+#### Publish for Framework-Dependent Deployment
+```bash
+dotnet publish --configuration Release --runtime win-x64 --self-contained false
+```
+
+### Build Output
+
+After publishing, you'll find:
+- **MouseClickerUI.exe** - The main executable
+- **app.ico** - Application icon (embedded in the executable)
+- All dependencies bundled in the single file (when using self-contained)
+
+### Distribution
+
+The published executable is a standalone application that can be distributed without requiring .NET runtime installation on target machines (when using self-contained publishing).
+
+### Troubleshooting
+
+- If you encounter build errors, ensure you have the correct .NET SDK version
+- For publishing issues, check that the target runtime identifier matches your deployment target
+- The application requires Windows API access, so it will only run on Windows systems
 
 ## Disclaimer
 
