@@ -32,6 +32,11 @@
                 <Run Text=" to stop clicking"/>
                 <LineBreak/>
                 <Run Text="6. " FontWeight="Bold"/>
+                <Run Text="Press "/>
+                <Run Text="7" FontWeight="Bold"/>
+                <Run Text=" to toggle smooth mouse movement (left-right)"/>
+                <LineBreak/>
+                <Run Text="7. " FontWeight="Bold"/>
                 <Run Text="Click 'Stop Listening' or press "/>
                 <Run Text="0" FontWeight="Bold"/>
                 <Run Text=" key"/>

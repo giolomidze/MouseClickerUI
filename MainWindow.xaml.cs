@@ -29,6 +29,10 @@ namespace MouseClickerUI
         private static bool _prevEnableListeningState;
         private static bool _prevDisableListeningState;
         private static bool _prevEnableClickingState;
+        private static bool _mouseMoving;
+        private static bool _prevEnableMouseMovingState;
+        private static int _mouseMovementDirection;
+        private static int _mouseMovementStep;
         private static int _targetProcessId;
         private static IntPtr _targetWindowHandle = IntPtr.Zero;
         private static string _targetProcessName = string.Empty;
@@ -43,6 +47,7 @@ namespace MouseClickerUI
 
         private const uint MouseEventLetdown = 0x02;
         private const uint MouseEventLeftUp = 0x04;
+        private const uint MouseEventMove = 0x01;
 
         [DllImport("user32.dll")]
         private static extern short GetKeyState(int nVirtKey);
@@ -348,6 +353,7 @@ namespace MouseClickerUI
             var isKey0Pressed = IsKeyPressed(0x30); // Key '0'
             var isKey8Pressed = IsKeyPressed(0x38); // Key '8'
             var isKey9Pressed = IsKeyPressed(0x39); // Key '9'
+            var isKey7Pressed = IsKeyPressed(0x37); // Key '7'
 
             if (isKey1Pressed && !_prevEnableListeningState)
             {
@@ -380,9 +386,32 @@ namespace MouseClickerUI
                 LabelStatus.Content = $"Mouse clicking disabled at {DateTime.Now}";
             }
 
+            if (_listening && isKey7Pressed && !_prevEnableMouseMovingState)
+            {
+                _mouseMoving = !_mouseMoving;
+                if (_mouseMoving)
+                {
+                    // Reset movement state when starting
+                    _mouseMovementStep = 0;
+                    _mouseMovementDirection = 1;
+                    LabelStatus.Content = $"Mouse movement enabled at {DateTime.Now}";
+                }
+                else
+                {
+                    LabelStatus.Content = $"Mouse movement disabled at {DateTime.Now}";
+                }
+            }
+
+            _prevEnableMouseMovingState = isKey7Pressed;
+
             if (_clicking)
             {
                 SimulateMouseClick();
+            }
+
+            if (_mouseMoving)
+            {
+                SimulateMouseMovement();
             }
         }
 
@@ -390,6 +419,30 @@ namespace MouseClickerUI
         {
             mouse_event(MouseEventLetdown, 0, 0, 0, UIntPtr.Zero);
             mouse_event(MouseEventLeftUp, 0, 0, 0, UIntPtr.Zero);
+        }
+
+        private static void SimulateMouseMovement()
+        {
+            const int movementRange = 30; // Total range of movement (15 pixels each direction)
+            const int stepsPerDirection = 10; // Number of steps to complete one direction
+            
+            // Calculate smooth movement using a sine wave pattern
+            var progress = (double)_mouseMovementStep / stepsPerDirection;
+            var sineValue = Math.Sin(progress * Math.PI); // 0 to π gives smooth 0 to 1 to 0
+            var movementAmount = (int)(sineValue * movementRange * _mouseMovementDirection);
+            
+            // Move mouse horizontally
+            mouse_event(MouseEventMove, movementAmount, 0, 0, UIntPtr.Zero);
+            
+            // Update step counter
+            _mouseMovementStep++;
+            
+            // When we complete one full cycle (both directions), reset and reverse direction
+            if (_mouseMovementStep >= stepsPerDirection * 2)
+            {
+                _mouseMovementStep = 0;
+                _mouseMovementDirection *= -1; // Reverse direction for next cycle
+            }
         }
     }
 }
