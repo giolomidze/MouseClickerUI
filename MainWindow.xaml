@@ -34,7 +34,7 @@
                 <Run Text="6. " FontWeight="Bold"/>
                 <Run Text="Press "/>
                 <Run Text="7" FontWeight="Bold"/>
-                <Run Text=" to toggle smooth mouse movement (left-right)"/>
+                <Run Text=" to toggle smooth mouse movement (left-right and up-down)"/>
                 <LineBreak/>
                 <Run Text="7. " FontWeight="Bold"/>
                 <Run Text="Click 'Stop Listening' or press "/>

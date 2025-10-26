@@ -429,10 +429,14 @@ namespace MouseClickerUI
             // Calculate smooth movement using a sine wave pattern
             var progress = (double)_mouseMovementStep / stepsPerDirection;
             var sineValue = Math.Sin(progress * Math.PI); // 0 to π gives smooth 0 to 1 to 0
-            var movementAmount = (int)(sineValue * movementRange * _mouseMovementDirection);
+            var horizontalMovement = (int)(sineValue * movementRange * _mouseMovementDirection);
             
-            // Move mouse horizontally
-            mouse_event(MouseEventMove, movementAmount, 0, 0, UIntPtr.Zero);
+            // For vertical movement, use a cosine wave (90 degrees out of phase) for smooth up-down motion
+            var cosineValue = Math.Cos(progress * Math.PI); // 0 to π gives smooth 1 to -1 to 1
+            var verticalMovement = (int)(cosineValue * movementRange);
+            
+            // Move mouse both horizontally and vertically
+            mouse_event(MouseEventMove, horizontalMovement, verticalMovement, 0, UIntPtr.Zero);
             
             // Update step counter
             _mouseMovementStep++;
