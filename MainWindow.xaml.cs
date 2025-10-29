@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
@@ -31,8 +32,16 @@ namespace MouseClickerUI
         private static bool _prevEnableClickingState;
         private static bool _mouseMoving;
         private static bool _prevEnableMouseMovingState;
+        private static bool _randomWasdEnabled;
+        private static bool _prevEnableRandomWasdState;
+        private static DateTime _lastWasdKeyPressTime;
+        private static int _nextWasdIntervalMs;
         private static int _mouseMovementDirection;
         private static int _mouseMovementStep;
+        private static int _currentMovementRange;
+#pragma warning disable IDE1006 // Naming Styles - matches existing codebase convention
+        private static readonly Random _random = new Random();
+#pragma warning restore IDE1006 // Naming Styles
         private static int _targetProcessId;
         private static IntPtr _targetWindowHandle = IntPtr.Zero;
         private static string _targetProcessName = string.Empty;
@@ -59,6 +68,75 @@ namespace MouseClickerUI
         [DllImport("user32.dll", SetLastError = true)]
         private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
+
+        [DllImport("kernel32.dll")]
+        private static extern uint GetLastError();
+
+#pragma warning disable IDE1006 // Naming Styles - Win32 API constants match Windows API naming
+        // Virtual key codes for WASD keys
+        private const ushort VK_W = 0x57; // W key
+        private const ushort VK_A = 0x41; // A key
+        private const ushort VK_S = 0x53; // S key
+        private const ushort VK_D = 0x44; // D key
+
+        // INPUT structure for SendInput - must match Windows API exactly
+        // Proven pattern: Sequential layout with union wrapper for proper 64-bit alignment
+        [StructLayout(LayoutKind.Sequential)]
+        private struct INPUT
+        {
+            public int type; // INPUT_KEYBOARD = 1 (changed to int for Win32 compatibility)
+            public InputUnion u; // Union wrapper for keyboard/mouse/hardware input
+        }
+
+        // InputUnion uses Explicit layout to represent the Windows API union
+        // All members start at offset 0 (overlapping memory)
+        // All union members must be defined even if only one is used
+        [StructLayout(LayoutKind.Explicit)]
+        private struct InputUnion
+        {
+            [FieldOffset(0)]
+            public MOUSEINPUT mi; // Mouse input union member
+            [FieldOffset(0)]
+            public KEYBDINPUT ki; // Keyboard input union member
+            [FieldOffset(0)]
+            public HARDWAREINPUT hi; // Hardware input union member
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct MOUSEINPUT
+        {
+            public int dx;
+            public int dy;
+            public uint mouseData;
+            public uint dwFlags;
+            public uint time;
+            public IntPtr dwExtraInfo;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct HARDWAREINPUT
+        {
+            public uint uMsg;
+            public ushort wParamL;
+            public ushort wParamH;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct KEYBDINPUT
+        {
+            public ushort wVk;
+            public ushort wScan;
+            public uint dwFlags;
+            public uint time;
+            public IntPtr dwExtraInfo;
+        }
+
+        private const int INPUT_KEYBOARD = 1;
+        private const uint KEYEVENTF_KEYUP = 0x0002;
+#pragma warning restore IDE1006 // Naming Styles
+
         private static bool IsKeyPressed(int keyCode)
         {
             return (GetKeyState(keyCode) & 0x8000) != 0;
@@ -66,15 +144,20 @@ namespace MouseClickerUI
 
         private static bool IsTargetWindow()
         {
-            if (_targetProcessId == 0 || _targetWindowHandle == IntPtr.Zero)
+            if (_targetProcessId == 0)
             {
                 return false;
             }
 
             var foregroundWindow = GetForegroundWindow();
             
+            if (foregroundWindow == IntPtr.Zero)
+            {
+                return false; // No foreground window
+            }
+            
             // Primary check: Verify foreground window handle matches stored handle
-            if (foregroundWindow == _targetWindowHandle)
+            if (_targetWindowHandle != IntPtr.Zero && foregroundWindow == _targetWindowHandle)
             {
                 return true;
             }
@@ -354,6 +437,7 @@ namespace MouseClickerUI
             var isKey8Pressed = IsKeyPressed(0x38); // Key '8'
             var isKey9Pressed = IsKeyPressed(0x39); // Key '9'
             var isKey7Pressed = IsKeyPressed(0x37); // Key '7'
+            var isKey6Pressed = IsKeyPressed(0x36); // Key '6'
 
             if (isKey1Pressed && !_prevEnableListeningState)
             {
@@ -368,6 +452,7 @@ namespace MouseClickerUI
                 _listening = false;
                 _clicking = false;
                 _mouseMoving = false;
+                _randomWasdEnabled = false;
                 LabelStatus.Content = $"Listening disabled at {DateTime.Now}";
             }
 
@@ -395,6 +480,7 @@ namespace MouseClickerUI
                     // Reset movement state when starting
                     _mouseMovementStep = 0;
                     _mouseMovementDirection = 1;
+                    _currentMovementRange = 0; // Will be initialized on first movement step
                     LabelStatus.Content = $"Mouse movement enabled at {DateTime.Now}";
                 }
                 else
@@ -405,6 +491,24 @@ namespace MouseClickerUI
 
             _prevEnableMouseMovingState = isKey7Pressed;
 
+            if (_listening && isKey6Pressed && !_prevEnableRandomWasdState)
+            {
+                _randomWasdEnabled = !_randomWasdEnabled;
+                if (_randomWasdEnabled)
+                {
+                    // Reset timing state when enabling
+                    _lastWasdKeyPressTime = DateTime.MinValue;
+                    _nextWasdIntervalMs = 0;
+                    LabelStatus.Content = $"Random WASD enabled at {DateTime.Now}";
+                }
+                else
+                {
+                    LabelStatus.Content = $"Random WASD disabled at {DateTime.Now}";
+                }
+            }
+
+            _prevEnableRandomWasdState = isKey6Pressed;
+
             if (_clicking)
             {
                 SimulateMouseClick();
@@ -414,6 +518,11 @@ namespace MouseClickerUI
             {
                 SimulateMouseMovement();
             }
+
+            if (_randomWasdEnabled)
+            {
+                SimulateRandomWasd();
+            }
         }
 
         private static void SimulateMouseClick()
@@ -422,31 +531,144 @@ namespace MouseClickerUI
             mouse_event(MouseEventLeftUp, 0, 0, 0, UIntPtr.Zero);
         }
 
+        private static void SimulateKeyPress(ushort virtualKeyCode)
+        {
+            // Verify target window is in focus before sending keys
+            // This ensures keys are only sent to the target application
+            if (!IsTargetWindow())
+            {
+                return; // Don't send keys if target window isn't active
+            }
+            
+            INPUT[] inputs = new INPUT[2];
+            
+            // Key down event
+            inputs[0] = new INPUT
+            {
+                type = INPUT_KEYBOARD,
+                u = new InputUnion
+                {
+                    ki = new KEYBDINPUT
+                    {
+                        wVk = virtualKeyCode,
+                        wScan = 0,
+                        dwFlags = 0,
+                        time = 0,
+                        dwExtraInfo = IntPtr.Zero
+                    }
+                }
+            };
+            
+            // Key up event
+            inputs[1] = new INPUT
+            {
+                type = INPUT_KEYBOARD,
+                u = new InputUnion
+                {
+                    ki = new KEYBDINPUT
+                    {
+                        wVk = virtualKeyCode,
+                        wScan = 0,
+                        dwFlags = KEYEVENTF_KEYUP,
+                        time = 0,
+                        dwExtraInfo = IntPtr.Zero
+                    }
+                }
+            };
+            
+            // Send both key down and key up events
+            // Marshal.SizeOf correctly calculates size including padding (40 bytes on 64-bit)
+            uint result = SendInput(2, inputs, Marshal.SizeOf(typeof(INPUT)));
+            
+            // SendInput returns the number of events successfully sent
+            // Should be 2 (key down + key up). If not, the send failed.
+            if (result != 2)
+            {
+                // SendInput failed - check the error code
+                uint errorCode = GetLastError();
+                Debug.WriteLine($"[SendInput] Failed to send key press. Expected 2 events, got {result}. Error code: {errorCode} (0x{errorCode:X8})");
+                // Common error codes:
+                // 5 = ACCESS_DENIED (requires admin or proper permissions)
+                // 87 = ERROR_INVALID_PARAMETER (invalid INPUT structure)
+                // 578 = ERROR_HOOK_TYPE_INCOMPATIBLE (UIPI blocking)
+            }
+        }
+
         private static void SimulateMouseMovement()
         {
-            const int movementRange = 30; // Total range of movement (15 pixels each direction)
+            const int baseMovementRangeMin = 25; // Minimum movement range
+            const int baseMovementRangeMax = 35; // Maximum movement range
             const int stepsPerDirection = 10; // Number of steps to complete one direction
+            const int perStepRandomOffset = 3; // Max random offset per step in pixels
+            
+            // When we complete one full cycle (both directions), reset and randomize movement range
+            if (_mouseMovementStep >= stepsPerDirection * 2)
+            {
+                _mouseMovementStep = 0;
+                _mouseMovementDirection *= -1; // Reverse direction for next cycle
+                // Randomize movement range for the new cycle (25-35 pixels)
+                _currentMovementRange = _random.Next(baseMovementRangeMin, baseMovementRangeMax + 1);
+            }
+            
+            // Initialize movement range on first call
+            if (_mouseMovementStep == 0 && _currentMovementRange == 0)
+            {
+                _currentMovementRange = _random.Next(baseMovementRangeMin, baseMovementRangeMax + 1);
+            }
             
             // Calculate smooth movement using a sine wave pattern
             var progress = (double)_mouseMovementStep / stepsPerDirection;
             var sineValue = Math.Sin(progress * Math.PI); // 0 to π gives smooth 0 to 1 to 0
-            var horizontalMovement = (int)(sineValue * movementRange * _mouseMovementDirection);
+            var horizontalMovement = (int)(sineValue * _currentMovementRange * _mouseMovementDirection);
             
             // For vertical movement, use a cosine wave (90 degrees out of phase) for smooth up-down motion
             var cosineValue = Math.Cos(progress * Math.PI); // 0 to π gives smooth 1 to -1 to 1
-            var verticalMovement = (int)(cosineValue * movementRange);
+            var verticalMovement = (int)(cosineValue * _currentMovementRange);
+            
+            // Add small random offset to each step (±perStepRandomOffset pixels)
+            var horizontalOffset = _random.Next(-perStepRandomOffset, perStepRandomOffset + 1);
+            var verticalOffset = _random.Next(-perStepRandomOffset, perStepRandomOffset + 1);
+            horizontalMovement += horizontalOffset;
+            verticalMovement += verticalOffset;
             
             // Move mouse both horizontally and vertically
             mouse_event(MouseEventMove, horizontalMovement, verticalMovement, 0, UIntPtr.Zero);
             
             // Update step counter
             _mouseMovementStep++;
+        }
+
+        private static void SimulateRandomWasd()
+        {
+            const int minKeyPressIntervalMs = 200; // Minimum time between key presses (ms)
+            const int maxKeyPressIntervalMs = 600; // Maximum time between key presses (ms)
             
-            // When we complete one full cycle (both directions), reset and reverse direction
-            if (_mouseMovementStep >= stepsPerDirection * 2)
+            var now = DateTime.Now;
+            
+            // If first call or enough time has passed, press a key
+            bool shouldPress = false;
+            if (_lastWasdKeyPressTime == DateTime.MinValue)
             {
-                _mouseMovementStep = 0;
-                _mouseMovementDirection *= -1; // Reverse direction for next cycle
+                // First call - press immediately
+                shouldPress = true;
+            }
+            else
+            {
+                var timeSinceLastPress = (now - _lastWasdKeyPressTime).TotalMilliseconds;
+                // Check if enough time has passed
+                shouldPress = timeSinceLastPress >= _nextWasdIntervalMs;
+            }
+            
+            if (shouldPress)
+            {
+                // Randomly select one of the WASD keys
+                ushort[] wasdKeys = { VK_W, VK_A, VK_S, VK_D };
+                ushort selectedKey = wasdKeys[_random.Next(wasdKeys.Length)];
+                SimulateKeyPress(selectedKey);
+                
+                // Update last press time and calculate next interval
+                _lastWasdKeyPressTime = now;
+                _nextWasdIntervalMs = _random.Next(minKeyPressIntervalMs, maxKeyPressIntervalMs + 1);
             }
         }
     }
