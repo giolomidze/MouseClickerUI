@@ -8,7 +8,13 @@ namespace MouseClickerUI.Services;
 /// </summary>
 public class ProcessManager
 {
+    private readonly IProcessEnumerator _processEnumerator;
     private List<string> _cachedProcessNames = [];
+
+    public ProcessManager(IProcessEnumerator processEnumerator)
+    {
+        _processEnumerator = processEnumerator;
+    }
 
     /// <summary>
     /// Loads all processes with windows and returns them as ProcessInfo objects.
@@ -16,7 +22,7 @@ public class ProcessManager
     /// <returns>List of ProcessInfo objects</returns>
     public List<ProcessInfo> LoadProcesses()
     {
-        var processes = Process.GetProcesses()
+        var processes = _processEnumerator.GetProcesses()
             .Where(p => !string.IsNullOrEmpty(p.MainWindowTitle))
             .OrderBy(p => p.ProcessName)
             .ToList();

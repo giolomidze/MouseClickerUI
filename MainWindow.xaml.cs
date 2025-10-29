@@ -36,7 +36,7 @@ public partial class MainWindow
         // Initialize services
         _inputSimulator = new InputSimulator();
         _windowManager = new WindowManager(_state);
-        _processManager = new ProcessManager();
+        _processManager = new ProcessManager(new SystemProcessEnumerator());
 
         // Initialize features
         _mouseClickerFeature = new MouseClickerFeature(_inputSimulator);

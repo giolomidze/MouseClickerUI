@@ -12,7 +12,7 @@ public class InputSimulator
     /// <summary>
     /// Simulates a left mouse click.
     /// </summary>
-    public void SimulateMouseClick()
+    public virtual void SimulateMouseClick()
     {
         NativeMethods.mouse_event(Constants.MOUSEEVENTF_LEFTDOWN, 0, 0, 0, UIntPtr.Zero);
         NativeMethods.mouse_event(Constants.MOUSEEVENTF_LEFTUP, 0, 0, 0, UIntPtr.Zero);
@@ -23,7 +23,7 @@ public class InputSimulator
     /// </summary>
     /// <param name="dx">Horizontal movement in pixels</param>
     /// <param name="dy">Vertical movement in pixels</param>
-    public void SimulateMouseMovement(int dx, int dy)
+    public virtual void SimulateMouseMovement(int dx, int dy)
     {
         NativeMethods.mouse_event(Constants.MOUSEEVENTF_MOVE, dx, dy, 0, UIntPtr.Zero);
     }
