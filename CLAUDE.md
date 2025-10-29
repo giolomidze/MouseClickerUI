@@ -32,29 +32,70 @@ Creates installer at `dist/MouseClickerUI-Setup.exe`
 
 ## Architecture
 
+The application follows a clean, layered architecture with separated concerns:
+
+### Directory Structure
+
+```
+MouseClickerUI/
+├── Win32/                    # Win32 API P/Invoke layer
+│   ├── NativeMethods.cs     # P/Invoke declarations
+│   ├── InputStructures.cs   # Win32 input structures
+│   └── Constants.cs         # Win32 constants
+├── Services/                 # Business logic services
+│   ├── InputSimulator.cs    # Mouse/keyboard simulation
+│   ├── WindowManager.cs     # Window detection/tracking
+│   └── ProcessManager.cs    # Process enumeration
+├── Features/                 # Individual feature implementations
+│   ├── IFeature.cs          # Feature interface
+│   ├── MouseClickerFeature.cs
+│   ├── MouseMovementFeature.cs
+│   └── RandomWasdFeature.cs
+├── Models/                   # Data models
+│   ├── ProcessInfo.cs       # Process information
+│   └── ApplicationState.cs  # Centralized state management
+└── MainWindow.xaml.cs       # UI orchestration (325 lines)
+```
+
 ### Core Components
 
-**MainWindow.xaml.cs** - Single monolithic file containing all application logic:
-- Process selection and monitoring
-- Win32 API interop (mouse_event, SendInput, GetForegroundWindow, etc.)
-- Three simulation modes: mouse clicking, mouse movement, random WASD keypresses
-- Polling-based key state detection using GetKeyState
-- Timer-based execution model (10ms tick interval)
+**Win32 Layer** (`Win32/`):
+- `NativeMethods.cs` - All P/Invoke declarations (mouse_event, SendInput, GetForegroundWindow, etc.)
+- `InputStructures.cs` - Win32 structures (INPUT, KEYBDINPUT, etc.) with proper marshaling
+- `Constants.cs` - Win32 constants (VK codes, event flags)
+
+**Services Layer** (`Services/`):
+- `InputSimulator.cs` - Encapsulates all mouse and keyboard simulation logic
+- `WindowManager.cs` - Handles target window detection and validation
+- `ProcessManager.cs` - Manages process enumeration and caching
+
+**Features Layer** (`Features/`):
+- Each feature implements `IFeature` interface with `Execute()` and `Reset()` methods
+- `MouseClickerFeature` - Automated clicking
+- `MouseMovementFeature` - Smooth sine/cosine wave movement
+- `RandomWasdFeature` - Random WASD keypresses
+
+**Models Layer** (`Models/`):
+- `ApplicationState` - Centralized state management for features and configuration
+- `ProcessInfo` - Process metadata (name, window title, handle, ID)
+
+**UI Layer**:
+- `MainWindow.xaml.cs` - Lightweight orchestration, event handling, and UI updates
 
 ### Key State Management
 
-The application uses static boolean flags to track active features:
-- `_listening` - Whether the app is monitoring the target window
-- `_clicking` - Whether automated clicking is active
-- `_mouseMoving` - Whether smooth mouse movement is active
-- `_randomWasdEnabled` - Whether random WASD keypresses are active
+The `ApplicationState` class centralizes all state:
+- Feature flags: `IsListening`, `IsClicking`, `IsMouseMoving`, `IsRandomWasdEnabled`
+- Target info: `TargetProcessId`, `TargetWindowHandle`, `TargetProcessName`, `TargetWindowTitle`
+- Configuration: `ClickDelay`
+- Previous key states for edge detection
 
-State changes are debounced using `_prev*State` flags to detect key press edges.
+State changes are debounced using `Prev*State` flags to detect key press edges.
 
 ### Target Window Detection
 
-Multi-layered approach in `IsTargetWindow()`:
-1. Primary: Match foreground window handle against stored `_targetWindowHandle`
+`WindowManager.IsTargetWindow()` uses a multi-layered approach:
+1. Primary: Match foreground window handle against stored `TargetWindowHandle`
 2. Secondary: Verify Process ID if handle changed
 3. Fallback: Re-detect by process name and window title
 
@@ -112,15 +153,42 @@ This is an input automation tool that can perform rapid mouse clicks and keypres
 
 ### Code Style Conventions
 - Win32 API constants use uppercase naming (e.g., `VK_W`, `KEYEVENTF_KEYUP`) - suppress IDE1006 warnings for these
-- Static fields use `_lowerCamelCase` with underscore prefix
+- Instance fields use `_lowerCamelCase` with underscore prefix
 - Process objects are explicitly disposed after use to prevent resource leaks
+- Each layer has a clear responsibility and doesn't cross boundaries
+
+### Architecture Benefits
+
+**Separation of Concerns:**
+- Win32 interop isolated in dedicated namespace
+- Business logic separated from UI code
+- Features are self-contained and independently testable
+
+**Maintainability:**
+- MainWindow.xaml.cs reduced from 675 to 325 lines
+- Adding new features requires only implementing `IFeature` interface
+- Win32 API changes isolated to Win32 namespace
+
+**Testability:**
+- Services can be unit tested without UI
+- Features can be tested in isolation
+- Dependency injection ready (all services accept dependencies)
+
+**Extensibility:**
+- New features easily added by implementing `IFeature`
+- New input methods can extend `InputSimulator`
+- Window detection logic centralized in `WindowManager`
 
 ### Common Pitfalls
 
-1. **SendInput Failures**: Requires proper INPUT structure marshaling. Use `Marshal.SizeOf(typeof(INPUT))` for size calculation, not manual calculation.
+1. **SendInput Failures**: `InputSimulator` uses proper INPUT structure marshaling with `Marshal.SizeOf(typeof(INPUT))`. Don't manually calculate structure sizes.
 
-2. **Target Window Detection**: Don't rely solely on process ID or window handle - use the multi-layered approach in `IsTargetWindow()` to handle window recreation scenarios.
+2. **Target Window Detection**: Always use `WindowManager.IsTargetWindow()` - it handles window recreation, PID changes, and fallback detection automatically.
 
-3. **Resource Management**: Always dispose Process objects immediately after use (see `LoadProcesses()` pattern).
+3. **Resource Management**: `ProcessManager` automatically disposes Process objects. Follow this pattern when working with unmanaged resources.
 
-4. **Timer Intervals**: The main timer runs at 10ms intervals. Click delay is separate and controlled by `_clickDelay` field.
+4. **Timer Intervals**: The main timer runs at 10ms intervals. Click delay is controlled by `ApplicationState.ClickDelay`.
+
+5. **State Management**: Always modify state through `ApplicationState` properties. Use `ResetFeatures()` or `StopAll()` methods instead of manually toggling flags.
+
+6. **Feature Lifecycle**: Call `Reset()` on features when toggling them on to ensure clean state.
