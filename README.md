@@ -6,35 +6,45 @@ Mouse Clicker UI is a Windows application that allows users to automate mouse cl
 
 - Select target application from a list of running processes
 - Enable/disable listening for key presses
-- Start/stop automated mouse clicking
-- Adjustable click delay
+- Start/stop automated mouse clicking with adjustable delay
+- Smooth mouse movement with sine/cosine wave patterns
+- Random WASD keypresses with 50% probability mouse clicks
 - Real-time status updates
+- Only operates when target window is in focus
 
 ## How to Use
 
 1. Launch the Mouse Clicker UI application.
 2. Select the target application from the dropdown list.
-3. Click "Start Listening" to begin monitoring key presses.
-4. Use the following key controls in the target application window:
+3. Set click delay (1-1000ms) using the slider or by entering a value.
+4. Click "Start Listening" or press '1' key to begin monitoring.
+5. Focus on the target application window and use the following key controls:
     - Press '1' to enable listening
-    - Press '0' to disable listening
+    - Press '0' to disable listening and stop all features
     - Press '8' to start mouse clicking
     - Press '9' to stop mouse clicking
-5. Adjust the click delay using the slider or by entering a value.
+    - Press '7' to toggle smooth mouse movement (left-right and up-down)
+    - Press '6' to toggle random WASD keypresses + mouse clicks (50% chance)
 6. The status label will show the current state of the application.
 
 ## Key Bindings
 
-- '1': Enable listening
-- '0': Disable listening and stop clicking
-- '8': Start mouse clicking (when listening is enabled)
-- '9': Stop mouse clicking (when clicking is active)
+All key bindings work only when the target application window is in focus:
+
+- **'1'**: Enable listening
+- **'0'**: Disable listening and stop all features
+- **'8'**: Start automated mouse clicking
+- **'9'**: Stop automated mouse clicking
+- **'7'**: Toggle smooth mouse movement (sine/cosine wave pattern)
+- **'6'**: Toggle random WASD keypresses with 50% probability mouse clicks
 
 ## Notes
 
 - The application will only function when the selected target window is in focus.
-- Be cautious when using this tool, as it can perform rapid mouse clicks.
-- Always ensure you have a way to quickly stop the clicking (using the '9' key or by switching windows).
+- Be cautious when using this tool, as it can perform rapid mouse clicks and keypresses.
+- Always ensure you have a way to quickly stop automation (press '0' key or switch windows).
+- The random WASD feature performs keypresses every 200-600ms, with each keypress having a 50% chance of also triggering a mouse click.
+- The smooth mouse movement uses natural sine/cosine wave patterns for realistic motion.
 
 ## Requirements
 

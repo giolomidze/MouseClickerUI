@@ -4,12 +4,14 @@ using MouseClickerUI.Win32;
 namespace MouseClickerUI.Features;
 
 /// <summary>
-/// Feature for simulating random WASD key presses.
+/// Feature for simulating random WASD key presses with 50% probability mouse clicks.
+/// Each WASD keypress has a 50% chance of also triggering a mouse click.
 /// </summary>
 public class RandomWasdFeature : IFeature
 {
     private const int MinKeyPressIntervalMs = 200; // Minimum time between key presses (ms)
     private const int MaxKeyPressIntervalMs = 600; // Maximum time between key presses (ms)
+    private const double ClickProbability = 0.5; // 50% chance to click with each WASD press
 
     private static readonly ushort[] WasdKeys = { Constants.VK_W, Constants.VK_A, Constants.VK_S, Constants.VK_D };
 
@@ -55,6 +57,12 @@ public class RandomWasdFeature : IFeature
             // Randomly select one of the WASD keys
             ushort selectedKey = WasdKeys[_random.Next(WasdKeys.Length)];
             _inputSimulator.SimulateKeyPress(selectedKey);
+
+            // 50% chance to also perform a mouse click
+            if (_random.NextDouble() < ClickProbability)
+            {
+                _inputSimulator.SimulateMouseClick();
+            }
 
             // Update last press time and calculate next interval
             _lastWasdKeyPressTime = now;

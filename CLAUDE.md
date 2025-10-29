@@ -81,7 +81,7 @@ MouseClickerUI/
 - Each feature implements `IFeature` interface with `Execute()` and `Reset()` methods
 - `MouseClickerFeature` - Automated clicking
 - `MouseMovementFeature` - Smooth sine/cosine wave movement
-- `RandomWasdFeature` - Random WASD keypresses
+- `RandomWasdFeature` - Random WASD keypresses with 50% probability mouse clicks
 
 **Models Layer** (`Models/`):
 - `ApplicationState` - Centralized state management for features and configuration
@@ -126,7 +126,7 @@ The `INPUT` structure uses a union pattern via `InputUnion` with `LayoutKind.Exp
 - `8` - Start mouse clicking
 - `9` - Stop mouse clicking
 - `7` - Toggle smooth mouse movement (sine/cosine wave pattern)
-- `6` - Toggle random WASD keypresses
+- `6` - Toggle random WASD keypresses with 50% probability mouse clicks
 
 ### Mouse Movement Algorithm
 
@@ -139,8 +139,10 @@ Uses sine/cosine wave patterns for smooth, natural-looking movement:
 ### Random WASD Implementation
 
 - Random interval between keypresses: 200-600ms
+- Each WASD keypress has a 50% probability of also triggering a mouse click
 - Validates target window focus before sending keys via `IsTargetWindow()`
-- Uses `SendInput()` with key down + key up events
+- Uses `SendInput()` with key down + key up events for keyboard input
+- Uses `mouse_event()` API for mouse clicks
 
 ## Project Configuration
 
@@ -189,6 +191,17 @@ dotnet test
   - `ResetFeatures_ResetsAllFeatureFlags` - Verifies feature reset behavior
   - `StopAll_ResetsListeningAndAllFeatures` - Verifies complete shutdown
   - `Constructor_SetsDefaultValues` - Verifies initialization
+
+**Features Layer:**
+- `RandomWasdFeatureTests.cs` - Tests for random WASD with mouse clicking
+  - `Reset_SetsAllFieldsToInitialState` - Verifies reset behavior
+  - `Execute_FirstCall_PressesKeyImmediately` - Verifies immediate first keypress
+  - `Execute_PressesWasdKeysOnly` - Verifies only WASD keys are pressed
+  - `Execute_ClicksWithApproximately50PercentProbability` - Verifies click probability
+  - `Execute_DoesNotPressKeyWhenTargetWindowNotActive` - Verifies window validation
+  - `Execute_RespectsRandomInterval` - Verifies timing behavior
+  - `Execute_KeyPressAlwaysAccompaniedByOptionalClick` - Verifies click/keypress relationship
+  - `Execute_AllWasdKeysGetSelected` - Verifies random key selection
 
 ### Adding New Tests
 

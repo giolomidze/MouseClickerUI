@@ -32,7 +32,7 @@ public class WindowManager
     /// Uses multi-layered detection: handle match, process ID match, and fallback re-detection.
     /// </summary>
     /// <returns>True if the target window is in focus, false otherwise</returns>
-    public bool IsTargetWindow()
+    public virtual bool IsTargetWindow()
     {
         if (_state.TargetProcessId == 0)
         {

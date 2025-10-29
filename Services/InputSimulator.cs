@@ -33,7 +33,7 @@ public class InputSimulator
     /// </summary>
     /// <param name="virtualKeyCode">Virtual key code to press</param>
     /// <returns>True if successful, false otherwise</returns>
-    public bool SimulateKeyPress(ushort virtualKeyCode)
+    public virtual bool SimulateKeyPress(ushort virtualKeyCode)
     {
         INPUT[] inputs = new INPUT[2];
 

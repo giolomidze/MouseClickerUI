@@ -39,7 +39,7 @@
                 <Run Text="7. " FontWeight="Bold"/>
                 <Run Text="Press "/>
                 <Run Text="6" FontWeight="Bold"/>
-                <Run Text=" to toggle random WASD key presses"/>
+                <Run Text=" to toggle random WASD key presses + mouse clicks (50% chance)"/>
                 <LineBreak/>
                 <Run Text="8. " FontWeight="Bold"/>
                 <Run Text="Click 'Stop Listening' or press "/>
