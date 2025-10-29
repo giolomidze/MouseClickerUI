@@ -23,4 +23,10 @@
         <Resource Include="app.ico" />
     </ItemGroup>
 
+    <ItemGroup>
+        <Compile Remove="MouseClickerUI.Tests/**" />
+        <EmbeddedResource Remove="MouseClickerUI.Tests/**" />
+        <None Remove="MouseClickerUI.Tests/**" />
+    </ItemGroup>
+
 </Project>

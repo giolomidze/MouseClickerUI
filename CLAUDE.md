@@ -30,6 +30,12 @@ Output: `bin/Release/net9.0-windows/win-x64/publish/MouseClickerUI.exe`
 ```
 Creates installer at `dist/MouseClickerUI-Setup.exe`
 
+### Run Tests
+```bash
+dotnet test MouseClickerUI.Tests/MouseClickerUI.Tests.csproj
+```
+Runs all unit tests in the test project
+
 ## Architecture
 
 The application follows a clean, layered architecture with separated concerns:
@@ -54,6 +60,8 @@ MouseClickerUI/
 ├── Models/                   # Data models
 │   ├── ProcessInfo.cs       # Process information
 │   └── ApplicationState.cs  # Centralized state management
+├── MouseClickerUI.Tests/     # Unit tests (xUnit)
+│   └── ApplicationStateTests.cs  # Tests for ApplicationState
 └── MainWindow.xaml.cs       # UI orchestration (325 lines)
 ```
 
@@ -143,6 +151,73 @@ Uses sine/cosine wave patterns for smooth, natural-looking movement:
 - Nullable reference types enabled
 - Implicit usings enabled
 
+## Unit Testing
+
+The project uses xUnit as the testing framework with the following setup:
+
+### Test Project Structure
+
+- **Project**: `MouseClickerUI.Tests`
+- **Framework**: xUnit with .NET 9.0 Windows
+- **Test Coverage**: Currently tests the Models layer (`ApplicationState`)
+- **Location**: `MouseClickerUI.Tests/` directory
+
+### Running Tests
+
+```bash
+# Run all tests
+dotnet test MouseClickerUI.Tests/MouseClickerUI.Tests.csproj
+
+# Run tests with detailed output
+dotnet test MouseClickerUI.Tests/MouseClickerUI.Tests.csproj --verbosity normal
+
+# Run tests from solution root
+dotnet test
+```
+
+### Testing Conventions
+
+1. **File Naming**: Test files follow the pattern `{ClassName}Tests.cs`
+2. **Test Naming**: Test methods use descriptive names: `MethodName_Scenario_ExpectedResult`
+3. **Arrange-Act-Assert**: Tests follow the AAA pattern with clear comments
+4. **Test Organization**: Tests are organized by the layer they test (Models, Services, Features)
+
+### Current Test Coverage
+
+**Models Layer:**
+- `ApplicationStateTests.cs` - Tests for state management
+  - `ResetFeatures_ResetsAllFeatureFlags` - Verifies feature reset behavior
+  - `StopAll_ResetsListeningAndAllFeatures` - Verifies complete shutdown
+  - `Constructor_SetsDefaultValues` - Verifies initialization
+
+### Adding New Tests
+
+To add tests for new components:
+
+1. Create a new test file in `MouseClickerUI.Tests/` following the naming convention
+2. Reference the appropriate namespace: `using MouseClickerUI.{Layer};`
+3. Follow the existing test patterns in `ApplicationStateTests.cs`
+4. For Services/Features layers, focus on testing business logic without UI dependencies
+
+### Test Project Configuration
+
+The test project is configured to:
+- Match the main project's target framework (net9.0-windows)
+- Disable assembly info generation to avoid conflicts with the main project
+- Exclude the test folder from the main project compilation
+- Use xUnit with Visual Studio test runner and code coverage support
+
+### Recommended Testing Strategy
+
+**High Priority for Testing:**
+- Models layer (state management, data validation)
+- Services layer (business logic without Win32 dependencies)
+- Features layer (feature behavior and lifecycle)
+
+**Low Priority for Testing:**
+- Win32 interop layer (difficult to mock, platform-specific)
+- UI layer (requires WPF testing infrastructure)
+
 ## Important Notes
 
 ### Security & Safety
@@ -173,6 +248,7 @@ This is an input automation tool that can perform rapid mouse clicks and keypres
 - Services can be unit tested without UI
 - Features can be tested in isolation
 - Dependency injection ready (all services accept dependencies)
+- xUnit test project established with example tests for Models layer
 
 **Extensibility:**
 - New features easily added by implementing `IFeature`
