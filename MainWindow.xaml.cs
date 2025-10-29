@@ -367,6 +367,7 @@ namespace MouseClickerUI
             {
                 _listening = false;
                 _clicking = false;
+                _mouseMoving = false;
                 LabelStatus.Content = $"Listening disabled at {DateTime.Now}";
             }
 
