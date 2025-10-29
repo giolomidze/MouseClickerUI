@@ -2,10 +2,25 @@
 
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
-        <TargetFramework>net8.0-windows</TargetFramework>
+        <TargetFramework>net9.0-windows</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <UseWPF>true</UseWPF>
+        <ApplicationIcon>app.ico</ApplicationIcon>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+        
+        <!-- Publishing Configuration -->
+        <PublishSingleFile>true</PublishSingleFile>
+        <SelfContained>true</SelfContained>
+        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+        <PublishReadyToRun>true</PublishReadyToRun>
+        <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+        <DebugType>none</DebugType>
     </PropertyGroup>
+
+    <ItemGroup>
+        <Resource Include="app.ico" />
+    </ItemGroup>
 
 </Project>

@@ -1,17 +1,61 @@
 ﻿<Window x:Class="MouseClickerUI.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Mouse Clicker" Height="300" Width="400">
-    <StackPanel Margin="10">
+        Title="Mouse Clicker" 
+        Icon="pack://application:,,,/app.ico"
+        SizeToContent="WidthAndHeight"
+        MinWidth="400" MinHeight="300"
+        ResizeMode="CanResize">
+    <StackPanel Margin="15">
+        <Expander Header="How to Use" IsExpanded="True" Margin="0,0,0,10" 
+                  Background="#F5F5F5" Padding="8">
+            <TextBlock TextWrapping="Wrap" FontSize="12" LineHeight="18">
+                <Run Text="1. " FontWeight="Bold"/>
+                <Run Text="Select target application from dropdown"/>
+                <LineBreak/>
+                <Run Text="2. " FontWeight="Bold"/>
+                <Run Text="Set click delay (1-1000ms)"/>
+                <LineBreak/>
+                <Run Text="3. " FontWeight="Bold"/>
+                <Run Text="Click 'Start Listening' or press "/>
+                <Run Text="1" FontWeight="Bold"/>
+                <Run Text=" key"/>
+                <LineBreak/>
+                <Run Text="4. " FontWeight="Bold"/>
+                <Run Text="Focus target app, press "/>
+                <Run Text="8" FontWeight="Bold"/>
+                <Run Text=" to start clicking"/>
+                <LineBreak/>
+                <Run Text="5. " FontWeight="Bold"/>
+                <Run Text="Press "/>
+                <Run Text="9" FontWeight="Bold"/>
+                <Run Text=" to stop clicking"/>
+                <LineBreak/>
+                <Run Text="6. " FontWeight="Bold"/>
+                <Run Text="Press "/>
+                <Run Text="7" FontWeight="Bold"/>
+                <Run Text=" to toggle smooth mouse movement (left-right and up-down)"/>
+                <LineBreak/>
+                <Run Text="7. " FontWeight="Bold"/>
+                <Run Text="Press "/>
+                <Run Text="6" FontWeight="Bold"/>
+                <Run Text=" to toggle random WASD key presses"/>
+                <LineBreak/>
+                <Run Text="8. " FontWeight="Bold"/>
+                <Run Text="Click 'Stop Listening' or press "/>
+                <Run Text="0" FontWeight="Bold"/>
+                <Run Text=" key"/>
+            </TextBlock>
+        </Expander>
         <Label Content="Select an application:" VerticalAlignment="Top" HorizontalAlignment="Left" />
         <ComboBox Name="ComboBoxProcesses" Width="360" Height="30" VerticalAlignment="Top" Margin="0,5,0,0" />
         <TextBlock Name="TextBlockValidationMessage" Foreground="Red" Visibility="Collapsed" VerticalAlignment="Top"
                    HorizontalAlignment="Left" Margin="0,5,0,0" />
         <StackPanel Orientation="Horizontal" Margin="10,5,0,0" VerticalAlignment="Top">
             <Label Content="Delay (ms):" VerticalAlignment="Center" HorizontalAlignment="Left" />
-            <Slider Name="SliderDelay" Minimum="1" Maximum="1000" Value="100" Width="200" Margin="5,0,0,0"
+            <Slider Name="SliderDelay" Minimum="1" Maximum="1000" Value="1" Width="200" Margin="5,0,0,0"
                     ValueChanged="SliderDelay_ValueChanged" />
-            <TextBox Name="TextBoxDelay" Text="100" Width="50" Margin="5,0,0,0" KeyUp="TextBoxDelay_KeyUp"
+            <TextBox Name="TextBoxDelay" Text="1" Width="50" Margin="5,0,0,0" KeyUp="TextBoxDelay_KeyUp"
                      LostFocus="TextBoxDelay_LostFocus" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
