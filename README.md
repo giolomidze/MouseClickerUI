@@ -70,6 +70,26 @@ dotnet build
 dotnet build --configuration Release
 ```
 
+### Running Tests
+
+The project includes a comprehensive test suite using xUnit:
+
+```bash
+# Run all tests
+dotnet test
+
+# Run tests with detailed output
+dotnet test --verbosity normal
+
+# Run tests with code coverage
+dotnet test --collect:"XPlat Code Coverage"
+```
+
+The test project is located at `MouseClickerUI.Tests/` and includes:
+- Model layer tests (ApplicationState)
+- Feature layer tests (RandomWasdFeature)
+- Service layer tests (ProcessManager, MouseMovementFeature)
+
 ### Publishing the Application
 
 The project is configured for single-file publishing with the following settings:
