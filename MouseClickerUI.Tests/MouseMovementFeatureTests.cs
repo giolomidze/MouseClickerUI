@@ -1,4 +1,5 @@
 using MouseClickerUI.Features;
+using MouseClickerUI.Models;
 using MouseClickerUI.Services;
 
 namespace MouseClickerUI.Tests;
@@ -10,7 +11,8 @@ public class MouseMovementFeatureTests
     {
         // Arrange
         var inputSimulator = new TestInputSimulator();
-        var feature = new MouseMovementFeature(inputSimulator);
+        var state = new ApplicationState();
+        var feature = new MouseMovementFeature(inputSimulator, state);
 
         // Execute a few times to change internal state
         feature.Execute();
@@ -42,7 +44,8 @@ public class MouseMovementFeatureTests
     {
         // Arrange
         var inputSimulator = new TestInputSimulator();
-        var feature = new MouseMovementFeature(inputSimulator);
+        var state = new ApplicationState();
+        var feature = new MouseMovementFeature(inputSimulator, state);
 
         // Act
         feature.Execute();
@@ -64,7 +67,8 @@ public class MouseMovementFeatureTests
     {
         // Arrange
         var inputSimulator = new TestInputSimulator();
-        var feature = new MouseMovementFeature(inputSimulator);
+        var state = new ApplicationState();
+        var feature = new MouseMovementFeature(inputSimulator, state);
 
         // Act - Execute 20 times to complete one full cycle (10 steps * 2 directions)
         for (int i = 0; i < 20; i++)
@@ -109,7 +113,8 @@ public class MouseMovementFeatureTests
     {
         // Arrange
         var inputSimulator = new TestInputSimulator();
-        var feature = new MouseMovementFeature(inputSimulator);
+        var state = new ApplicationState();
+        var feature = new MouseMovementFeature(inputSimulator, state);
 
         // Act - Complete first cycle
         for (int i = 0; i < 20; i++)
@@ -146,7 +151,8 @@ public class MouseMovementFeatureTests
     {
         // Arrange
         var inputSimulator = new TestInputSimulator();
-        var feature = new MouseMovementFeature(inputSimulator);
+        var state = new ApplicationState();
+        var feature = new MouseMovementFeature(inputSimulator, state);
 
         // Act - Execute multiple times
         for (int i = 0; i < 50; i++)
@@ -170,7 +176,8 @@ public class MouseMovementFeatureTests
     {
         // Arrange
         var inputSimulator = new TestInputSimulator();
-        var feature = new MouseMovementFeature(inputSimulator);
+        var state = new ApplicationState();
+        var feature = new MouseMovementFeature(inputSimulator, state);
 
         // Act
         for (int i = 0; i < 10; i++)

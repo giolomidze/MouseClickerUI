@@ -20,6 +20,12 @@ public class ApplicationState
     // Configuration
     public int ClickDelay { get; set; } = 1;
 
+    // Mouse movement configuration
+    public int MouseMovementRangeMin { get; set; } = 25;
+    public int MouseMovementRangeMax { get; set; } = 35;
+    public int MouseMovementStepsPerDirection { get; set; } = 10;
+    public int MouseMovementRandomOffset { get; set; } = 3;
+
     // Previous key states for edge detection
     public bool PrevEnableListeningState { get; set; }
     public bool PrevDisableListeningState { get; set; }

@@ -40,7 +40,7 @@ public partial class MainWindow
 
         // Initialize features
         _mouseClickerFeature = new MouseClickerFeature(_inputSimulator);
-        _mouseMovementFeature = new MouseMovementFeature(_inputSimulator);
+        _mouseMovementFeature = new MouseMovementFeature(_inputSimulator, _state);
         _randomWasdFeature = new RandomWasdFeature(_inputSimulator, _windowManager);
 
         // Initialize UI
@@ -206,6 +206,226 @@ public partial class MainWindow
         else
         {
             TextBoxDelay.Text = _state.ClickDelay.ToString();
+        }
+    }
+
+    #endregion
+
+    #region Mouse Movement Configuration
+
+    // Movement Range Min
+    private void SliderMovementRangeMin_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (TextBoxMovementRangeMin != null)
+        {
+            _state.MouseMovementRangeMin = (int)e.NewValue;
+            TextBoxMovementRangeMin.Text = _state.MouseMovementRangeMin.ToString();
+        }
+    }
+
+    private void TextBoxMovementRangeMin_KeyUp(object sender, KeyEventArgs e)
+    {
+        if (int.TryParse(TextBoxMovementRangeMin.Text, out int newValue))
+        {
+            if (newValue < (int)SliderMovementRangeMin.Minimum)
+            {
+                newValue = (int)SliderMovementRangeMin.Minimum;
+            }
+            else if (newValue > (int)SliderMovementRangeMin.Maximum)
+            {
+                newValue = (int)SliderMovementRangeMin.Maximum;
+            }
+
+            _state.MouseMovementRangeMin = newValue;
+            SliderMovementRangeMin.Value = newValue;
+        }
+        else
+        {
+            TextBoxMovementRangeMin.Text = _state.MouseMovementRangeMin.ToString();
+        }
+    }
+
+    private void TextBoxMovementRangeMin_LostFocus(object sender, RoutedEventArgs e)
+    {
+        if (int.TryParse(TextBoxMovementRangeMin.Text, out int newValue))
+        {
+            if (newValue < (int)SliderMovementRangeMin.Minimum)
+            {
+                newValue = (int)SliderMovementRangeMin.Minimum;
+            }
+            else if (newValue > (int)SliderMovementRangeMin.Maximum)
+            {
+                newValue = (int)SliderMovementRangeMin.Maximum;
+            }
+
+            _state.MouseMovementRangeMin = newValue;
+            SliderMovementRangeMin.Value = newValue;
+        }
+        else
+        {
+            TextBoxMovementRangeMin.Text = _state.MouseMovementRangeMin.ToString();
+        }
+    }
+
+    // Movement Range Max
+    private void SliderMovementRangeMax_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (TextBoxMovementRangeMax != null)
+        {
+            _state.MouseMovementRangeMax = (int)e.NewValue;
+            TextBoxMovementRangeMax.Text = _state.MouseMovementRangeMax.ToString();
+        }
+    }
+
+    private void TextBoxMovementRangeMax_KeyUp(object sender, KeyEventArgs e)
+    {
+        if (int.TryParse(TextBoxMovementRangeMax.Text, out int newValue))
+        {
+            if (newValue < (int)SliderMovementRangeMax.Minimum)
+            {
+                newValue = (int)SliderMovementRangeMax.Minimum;
+            }
+            else if (newValue > (int)SliderMovementRangeMax.Maximum)
+            {
+                newValue = (int)SliderMovementRangeMax.Maximum;
+            }
+
+            _state.MouseMovementRangeMax = newValue;
+            SliderMovementRangeMax.Value = newValue;
+        }
+        else
+        {
+            TextBoxMovementRangeMax.Text = _state.MouseMovementRangeMax.ToString();
+        }
+    }
+
+    private void TextBoxMovementRangeMax_LostFocus(object sender, RoutedEventArgs e)
+    {
+        if (int.TryParse(TextBoxMovementRangeMax.Text, out int newValue))
+        {
+            if (newValue < (int)SliderMovementRangeMax.Minimum)
+            {
+                newValue = (int)SliderMovementRangeMax.Minimum;
+            }
+            else if (newValue > (int)SliderMovementRangeMax.Maximum)
+            {
+                newValue = (int)SliderMovementRangeMax.Maximum;
+            }
+
+            _state.MouseMovementRangeMax = newValue;
+            SliderMovementRangeMax.Value = newValue;
+        }
+        else
+        {
+            TextBoxMovementRangeMax.Text = _state.MouseMovementRangeMax.ToString();
+        }
+    }
+
+    // Movement Steps
+    private void SliderMovementSteps_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (TextBoxMovementSteps != null)
+        {
+            _state.MouseMovementStepsPerDirection = (int)e.NewValue;
+            TextBoxMovementSteps.Text = _state.MouseMovementStepsPerDirection.ToString();
+        }
+    }
+
+    private void TextBoxMovementSteps_KeyUp(object sender, KeyEventArgs e)
+    {
+        if (int.TryParse(TextBoxMovementSteps.Text, out int newValue))
+        {
+            if (newValue < (int)SliderMovementSteps.Minimum)
+            {
+                newValue = (int)SliderMovementSteps.Minimum;
+            }
+            else if (newValue > (int)SliderMovementSteps.Maximum)
+            {
+                newValue = (int)SliderMovementSteps.Maximum;
+            }
+
+            _state.MouseMovementStepsPerDirection = newValue;
+            SliderMovementSteps.Value = newValue;
+        }
+        else
+        {
+            TextBoxMovementSteps.Text = _state.MouseMovementStepsPerDirection.ToString();
+        }
+    }
+
+    private void TextBoxMovementSteps_LostFocus(object sender, RoutedEventArgs e)
+    {
+        if (int.TryParse(TextBoxMovementSteps.Text, out int newValue))
+        {
+            if (newValue < (int)SliderMovementSteps.Minimum)
+            {
+                newValue = (int)SliderMovementSteps.Minimum;
+            }
+            else if (newValue > (int)SliderMovementSteps.Maximum)
+            {
+                newValue = (int)SliderMovementSteps.Maximum;
+            }
+
+            _state.MouseMovementStepsPerDirection = newValue;
+            SliderMovementSteps.Value = newValue;
+        }
+        else
+        {
+            TextBoxMovementSteps.Text = _state.MouseMovementStepsPerDirection.ToString();
+        }
+    }
+
+    // Movement Offset
+    private void SliderMovementOffset_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (TextBoxMovementOffset != null)
+        {
+            _state.MouseMovementRandomOffset = (int)e.NewValue;
+            TextBoxMovementOffset.Text = _state.MouseMovementRandomOffset.ToString();
+        }
+    }
+
+    private void TextBoxMovementOffset_KeyUp(object sender, KeyEventArgs e)
+    {
+        if (int.TryParse(TextBoxMovementOffset.Text, out int newValue))
+        {
+            if (newValue < (int)SliderMovementOffset.Minimum)
+            {
+                newValue = (int)SliderMovementOffset.Minimum;
+            }
+            else if (newValue > (int)SliderMovementOffset.Maximum)
+            {
+                newValue = (int)SliderMovementOffset.Maximum;
+            }
+
+            _state.MouseMovementRandomOffset = newValue;
+            SliderMovementOffset.Value = newValue;
+        }
+        else
+        {
+            TextBoxMovementOffset.Text = _state.MouseMovementRandomOffset.ToString();
+        }
+    }
+
+    private void TextBoxMovementOffset_LostFocus(object sender, RoutedEventArgs e)
+    {
+        if (int.TryParse(TextBoxMovementOffset.Text, out int newValue))
+        {
+            if (newValue < (int)SliderMovementOffset.Minimum)
+            {
+                newValue = (int)SliderMovementOffset.Minimum;
+            }
+            else if (newValue > (int)SliderMovementOffset.Maximum)
+            {
+                newValue = (int)SliderMovementOffset.Maximum;
+            }
+
+            _state.MouseMovementRandomOffset = newValue;
+            SliderMovementOffset.Value = newValue;
+        }
+        else
+        {
+            TextBoxMovementOffset.Text = _state.MouseMovementRandomOffset.ToString();
         }
     }
 

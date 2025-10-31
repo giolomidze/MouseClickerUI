@@ -58,6 +58,39 @@
             <TextBox Name="TextBoxDelay" Text="1" Width="50" Margin="5,0,0,0" KeyUp="TextBoxDelay_KeyUp"
                      LostFocus="TextBoxDelay_LostFocus" />
         </StackPanel>
+        <Expander Header="Mouse Movement Settings" IsExpanded="False" Margin="0,10,0,0"
+                  Background="#F5F5F5" Padding="8">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                    <Label Content="Min Range (px):" VerticalAlignment="Center" Width="120" />
+                    <Slider Name="SliderMovementRangeMin" Minimum="1" Maximum="100" Value="25" Width="150" Margin="5,0,0,0"
+                            ValueChanged="SliderMovementRangeMin_ValueChanged" />
+                    <TextBox Name="TextBoxMovementRangeMin" Text="25" Width="50" Margin="5,0,0,0"
+                             KeyUp="TextBoxMovementRangeMin_KeyUp" LostFocus="TextBoxMovementRangeMin_LostFocus" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                    <Label Content="Max Range (px):" VerticalAlignment="Center" Width="120" />
+                    <Slider Name="SliderMovementRangeMax" Minimum="1" Maximum="100" Value="35" Width="150" Margin="5,0,0,0"
+                            ValueChanged="SliderMovementRangeMax_ValueChanged" />
+                    <TextBox Name="TextBoxMovementRangeMax" Text="35" Width="50" Margin="5,0,0,0"
+                             KeyUp="TextBoxMovementRangeMax_KeyUp" LostFocus="TextBoxMovementRangeMax_LostFocus" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                    <Label Content="Steps Per Direction:" VerticalAlignment="Center" Width="120" />
+                    <Slider Name="SliderMovementSteps" Minimum="1" Maximum="50" Value="10" Width="150" Margin="5,0,0,0"
+                            ValueChanged="SliderMovementSteps_ValueChanged" />
+                    <TextBox Name="TextBoxMovementSteps" Text="10" Width="50" Margin="5,0,0,0"
+                             KeyUp="TextBoxMovementSteps_KeyUp" LostFocus="TextBoxMovementSteps_LostFocus" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                    <Label Content="Random Offset (px):" VerticalAlignment="Center" Width="120" />
+                    <Slider Name="SliderMovementOffset" Minimum="0" Maximum="20" Value="3" Width="150" Margin="5,0,0,0"
+                            ValueChanged="SliderMovementOffset_ValueChanged" />
+                    <TextBox Name="TextBoxMovementOffset" Text="3" Width="50" Margin="5,0,0,0"
+                             KeyUp="TextBoxMovementOffset_KeyUp" LostFocus="TextBoxMovementOffset_LostFocus" />
+                </StackPanel>
+            </StackPanel>
+        </Expander>
         <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
             <Button Name="ButtonStartListening" Content="Start Listening" Width="120" Height="30"
                     Click="buttonStartListening_Click" />
