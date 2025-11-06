@@ -1,36 +1,55 @@
+using MouseClickerUI.Models;
 using MouseClickerUI.Services;
 using MouseClickerUI.Win32;
 
 namespace MouseClickerUI.Features;
 
 /// <summary>
-/// Feature for simulating random WASD key presses with 50% probability mouse clicks.
-/// Each WASD keypress has a 50% chance of also triggering a mouse click.
+/// Feature for simulating random WASD key presses with configurable probability mouse clicks.
+/// Each WASD keypress has a configurable chance of also triggering a mouse click.
 /// </summary>
 public class RandomWasdFeature : IFeature
 {
-    private const int MinKeyPressIntervalMs = 200; // Minimum time between key presses (ms)
-    private const int MaxKeyPressIntervalMs = 600; // Maximum time between key presses (ms)
-    private const double ClickProbability = 0.5; // 50% chance to click with each WASD press
+    private const int DelayBetweenKeyAndClickMs = 50; // Small delay to simulate human behavior
 
     private static readonly ushort[] WasdKeys = { Constants.VK_W, Constants.VK_A, Constants.VK_S, Constants.VK_D };
 
     private readonly InputSimulator _inputSimulator;
     private readonly WindowManager _windowManager;
+    private readonly ApplicationState _state;
     private readonly Random _random = new();
 
     private DateTime _lastWasdKeyPressTime = DateTime.MinValue;
+    private DateTime _lastClickTime = DateTime.MinValue;
     private int _nextWasdIntervalMs;
+    private bool _shouldClickAfterDelay;
 
-    public RandomWasdFeature(InputSimulator inputSimulator, WindowManager windowManager)
+    public RandomWasdFeature(InputSimulator inputSimulator, WindowManager windowManager, ApplicationState state)
     {
         _inputSimulator = inputSimulator;
         _windowManager = windowManager;
+        _state = state;
     }
 
     public void Execute()
     {
         var now = DateTime.Now;
+
+        // Handle delayed click if pending
+        if (_shouldClickAfterDelay && _lastClickTime != DateTime.MinValue)
+        {
+            var timeSinceKeyPress = (now - _lastClickTime).TotalMilliseconds;
+            if (timeSinceKeyPress >= DelayBetweenKeyAndClickMs)
+            {
+                // Re-validate window is still in focus before clicking
+                if (_windowManager.IsTargetWindow())
+                {
+                    _inputSimulator.SimulateMouseClick();
+                }
+                _shouldClickAfterDelay = false;
+                _lastClickTime = DateTime.MinValue;
+            }
+        }
 
         // If first call or enough time has passed, press a key
         bool shouldPress = false;
@@ -58,21 +77,26 @@ public class RandomWasdFeature : IFeature
             ushort selectedKey = WasdKeys[_random.Next(WasdKeys.Length)];
             _inputSimulator.SimulateKeyPress(selectedKey);
 
-            // 50% chance to also perform a mouse click
-            if (_random.NextDouble() < ClickProbability)
+            // Check if we should also perform a mouse click (based on configured probability)
+            var clickProbability = _state.RandomWasdClickProbability / 100.0;
+            if (_random.NextDouble() < clickProbability)
             {
-                _inputSimulator.SimulateMouseClick();
+                // Schedule click with small delay to simulate human behavior
+                _shouldClickAfterDelay = true;
+                _lastClickTime = now;
             }
 
-            // Update last press time and calculate next interval
+            // Update last press time and calculate next interval using configured values
             _lastWasdKeyPressTime = now;
-            _nextWasdIntervalMs = _random.Next(MinKeyPressIntervalMs, MaxKeyPressIntervalMs + 1);
+            _nextWasdIntervalMs = _random.Next(_state.RandomWasdMinInterval, _state.RandomWasdMaxInterval + 1);
         }
     }
 
     public void Reset()
     {
         _lastWasdKeyPressTime = DateTime.MinValue;
+        _lastClickTime = DateTime.MinValue;
         _nextWasdIntervalMs = 0;
+        _shouldClickAfterDelay = false;
     }
 }

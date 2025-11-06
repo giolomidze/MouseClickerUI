@@ -41,7 +41,7 @@ public partial class MainWindow
         // Initialize features
         _mouseClickerFeature = new MouseClickerFeature(_inputSimulator);
         _mouseMovementFeature = new MouseMovementFeature(_inputSimulator);
-        _randomWasdFeature = new RandomWasdFeature(_inputSimulator, _windowManager);
+        _randomWasdFeature = new RandomWasdFeature(_inputSimulator, _windowManager, _state);
 
         // Initialize UI
         LoadProcesses();
@@ -206,6 +206,169 @@ public partial class MainWindow
         else
         {
             TextBoxDelay.Text = _state.ClickDelay.ToString();
+        }
+    }
+
+    #endregion
+
+    #region Random WASD Configuration
+
+    private void SliderWasdMinInterval_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (TextBoxWasdMinInterval != null)
+        {
+            _state.RandomWasdMinInterval = (int)e.NewValue;
+            TextBoxWasdMinInterval.Text = _state.RandomWasdMinInterval.ToString();
+        }
+    }
+
+    private void TextBoxWasdMinInterval_KeyUp(object sender, KeyEventArgs e)
+    {
+        if (int.TryParse(TextBoxWasdMinInterval.Text, out int newValue))
+        {
+            if (newValue < (int)SliderWasdMinInterval.Minimum)
+            {
+                newValue = (int)SliderWasdMinInterval.Minimum;
+            }
+            else if (newValue > (int)SliderWasdMinInterval.Maximum)
+            {
+                newValue = (int)SliderWasdMinInterval.Maximum;
+            }
+
+            _state.RandomWasdMinInterval = newValue;
+            SliderWasdMinInterval.Value = newValue;
+        }
+        else
+        {
+            TextBoxWasdMinInterval.Text = _state.RandomWasdMinInterval.ToString();
+        }
+    }
+
+    private void TextBoxWasdMinInterval_LostFocus(object sender, RoutedEventArgs e)
+    {
+        if (int.TryParse(TextBoxWasdMinInterval.Text, out int newValue))
+        {
+            if (newValue < (int)SliderWasdMinInterval.Minimum)
+            {
+                newValue = (int)SliderWasdMinInterval.Minimum;
+            }
+            else if (newValue > (int)SliderWasdMinInterval.Maximum)
+            {
+                newValue = (int)SliderWasdMinInterval.Maximum;
+            }
+
+            _state.RandomWasdMinInterval = newValue;
+            SliderWasdMinInterval.Value = newValue;
+        }
+        else
+        {
+            TextBoxWasdMinInterval.Text = _state.RandomWasdMinInterval.ToString();
+        }
+    }
+
+    private void SliderWasdMaxInterval_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (TextBoxWasdMaxInterval != null)
+        {
+            _state.RandomWasdMaxInterval = (int)e.NewValue;
+            TextBoxWasdMaxInterval.Text = _state.RandomWasdMaxInterval.ToString();
+        }
+    }
+
+    private void TextBoxWasdMaxInterval_KeyUp(object sender, KeyEventArgs e)
+    {
+        if (int.TryParse(TextBoxWasdMaxInterval.Text, out int newValue))
+        {
+            if (newValue < (int)SliderWasdMaxInterval.Minimum)
+            {
+                newValue = (int)SliderWasdMaxInterval.Minimum;
+            }
+            else if (newValue > (int)SliderWasdMaxInterval.Maximum)
+            {
+                newValue = (int)SliderWasdMaxInterval.Maximum;
+            }
+
+            _state.RandomWasdMaxInterval = newValue;
+            SliderWasdMaxInterval.Value = newValue;
+        }
+        else
+        {
+            TextBoxWasdMaxInterval.Text = _state.RandomWasdMaxInterval.ToString();
+        }
+    }
+
+    private void TextBoxWasdMaxInterval_LostFocus(object sender, RoutedEventArgs e)
+    {
+        if (int.TryParse(TextBoxWasdMaxInterval.Text, out int newValue))
+        {
+            if (newValue < (int)SliderWasdMaxInterval.Minimum)
+            {
+                newValue = (int)SliderWasdMaxInterval.Minimum;
+            }
+            else if (newValue > (int)SliderWasdMaxInterval.Maximum)
+            {
+                newValue = (int)SliderWasdMaxInterval.Maximum;
+            }
+
+            _state.RandomWasdMaxInterval = newValue;
+            SliderWasdMaxInterval.Value = newValue;
+        }
+        else
+        {
+            TextBoxWasdMaxInterval.Text = _state.RandomWasdMaxInterval.ToString();
+        }
+    }
+
+    private void SliderWasdClickProb_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (TextBoxWasdClickProb != null)
+        {
+            _state.RandomWasdClickProbability = (int)e.NewValue;
+            TextBoxWasdClickProb.Text = _state.RandomWasdClickProbability.ToString();
+        }
+    }
+
+    private void TextBoxWasdClickProb_KeyUp(object sender, KeyEventArgs e)
+    {
+        if (int.TryParse(TextBoxWasdClickProb.Text, out int newValue))
+        {
+            if (newValue < (int)SliderWasdClickProb.Minimum)
+            {
+                newValue = (int)SliderWasdClickProb.Minimum;
+            }
+            else if (newValue > (int)SliderWasdClickProb.Maximum)
+            {
+                newValue = (int)SliderWasdClickProb.Maximum;
+            }
+
+            _state.RandomWasdClickProbability = newValue;
+            SliderWasdClickProb.Value = newValue;
+        }
+        else
+        {
+            TextBoxWasdClickProb.Text = _state.RandomWasdClickProbability.ToString();
+        }
+    }
+
+    private void TextBoxWasdClickProb_LostFocus(object sender, RoutedEventArgs e)
+    {
+        if (int.TryParse(TextBoxWasdClickProb.Text, out int newValue))
+        {
+            if (newValue < (int)SliderWasdClickProb.Minimum)
+            {
+                newValue = (int)SliderWasdClickProb.Minimum;
+            }
+            else if (newValue > (int)SliderWasdClickProb.Maximum)
+            {
+                newValue = (int)SliderWasdClickProb.Maximum;
+            }
+
+            _state.RandomWasdClickProbability = newValue;
+            SliderWasdClickProb.Value = newValue;
+        }
+        else
+        {
+            TextBoxWasdClickProb.Text = _state.RandomWasdClickProbability.ToString();
         }
     }
 

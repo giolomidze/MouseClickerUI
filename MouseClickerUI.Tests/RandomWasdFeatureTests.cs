@@ -12,7 +12,8 @@ public class RandomWasdFeatureTests
         // Arrange
         var inputSimulator = new TestInputSimulator();
         var windowManager = new TestWindowManager();
-        var feature = new RandomWasdFeature(inputSimulator, windowManager);
+        var state = new ApplicationState();
+        var feature = new RandomWasdFeature(inputSimulator, windowManager, state);
 
         // Execute to change internal state
         feature.Execute();
@@ -36,7 +37,8 @@ public class RandomWasdFeatureTests
         // Arrange
         var inputSimulator = new TestInputSimulator();
         var windowManager = new TestWindowManager();
-        var feature = new RandomWasdFeature(inputSimulator, windowManager);
+        var state = new ApplicationState();
+        var feature = new RandomWasdFeature(inputSimulator, windowManager, state);
 
         // Act
         feature.Execute();
@@ -52,7 +54,8 @@ public class RandomWasdFeatureTests
         // Arrange
         var inputSimulator = new TestInputSimulator();
         var windowManager = new TestWindowManager();
-        var feature = new RandomWasdFeature(inputSimulator, windowManager);
+        var state = new ApplicationState();
+        var feature = new RandomWasdFeature(inputSimulator, windowManager, state);
 
         // Act - Execute multiple times to get various random selections
         for (int i = 0; i < 100; i++)
@@ -76,7 +79,8 @@ public class RandomWasdFeatureTests
         // Arrange
         var inputSimulator = new TestInputSimulator();
         var windowManager = new TestWindowManager();
-        var feature = new RandomWasdFeature(inputSimulator, windowManager);
+        var state = new ApplicationState();
+        var feature = new RandomWasdFeature(inputSimulator, windowManager, state);
 
         // Act - Execute many times to get statistical sample
         int iterations = 200;
@@ -84,6 +88,10 @@ public class RandomWasdFeatureTests
         {
             // Reset to trigger immediate keypress
             feature.Reset();
+            feature.Execute();
+
+            // Wait for delayed click to trigger (50+ ms)
+            Thread.Sleep(60);
             feature.Execute();
         }
 
@@ -105,7 +113,8 @@ public class RandomWasdFeatureTests
         // Arrange
         var inputSimulator = new TestInputSimulator();
         var windowManager = new TestWindowManager { IsTarget = false };
-        var feature = new RandomWasdFeature(inputSimulator, windowManager);
+        var state = new ApplicationState();
+        var feature = new RandomWasdFeature(inputSimulator, windowManager, state);
 
         // Act
         feature.Execute();
@@ -122,7 +131,8 @@ public class RandomWasdFeatureTests
         // Arrange
         var inputSimulator = new TestInputSimulator();
         var windowManager = new TestWindowManager();
-        var feature = new RandomWasdFeature(inputSimulator, windowManager);
+        var state = new ApplicationState();
+        var feature = new RandomWasdFeature(inputSimulator, windowManager, state);
 
         // Act - First execution should press immediately
         feature.Execute();
@@ -145,13 +155,18 @@ public class RandomWasdFeatureTests
         // Arrange
         var inputSimulator = new TestInputSimulator();
         var windowManager = new TestWindowManager();
-        var feature = new RandomWasdFeature(inputSimulator, windowManager);
+        var state = new ApplicationState();
+        var feature = new RandomWasdFeature(inputSimulator, windowManager, state);
 
         // Act
         int iterations = 100;
         for (int i = 0; i < iterations; i++)
         {
             feature.Reset();
+            feature.Execute();
+
+            // Wait for delayed click by simulating time passing (50+ ms)
+            Thread.Sleep(60);
             feature.Execute();
         }
 
@@ -160,7 +175,7 @@ public class RandomWasdFeatureTests
         Assert.True(inputSimulator.MouseClicks <= inputSimulator.KeyPresses.Count,
             "Mouse clicks should never exceed keypresses");
 
-        // Should have exactly as many keypresses as iterations
+        // Should have exactly as many keypresses as iterations (one per reset/execute)
         Assert.Equal(iterations, inputSimulator.KeyPresses.Count);
     }
 
@@ -170,7 +185,8 @@ public class RandomWasdFeatureTests
         // Arrange
         var inputSimulator = new TestInputSimulator();
         var windowManager = new TestWindowManager();
-        var feature = new RandomWasdFeature(inputSimulator, windowManager);
+        var state = new ApplicationState();
+        var feature = new RandomWasdFeature(inputSimulator, windowManager, state);
 
         // Act - Execute many times to ensure all keys are selected at least once
         for (int i = 0; i < 100; i++)
