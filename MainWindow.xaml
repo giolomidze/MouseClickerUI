@@ -62,25 +62,34 @@
                   Background="#F5F5F5" Padding="8">
             <StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
-                    <Label Content="Min Interval (ms):" VerticalAlignment="Center" Width="120" />
+                    <Label Content="Min Interval (ms):" VerticalAlignment="Center" Width="120"
+                           ToolTip="Minimum time between WASD keypresses (100-2000ms)"/>
                     <Slider Name="SliderWasdMinInterval" Minimum="100" Maximum="2000" Value="300" Width="150"
-                            Margin="5,0,0,0" ValueChanged="SliderWasdMinInterval_ValueChanged" />
+                            Margin="5,0,0,0" ValueChanged="SliderWasdMinInterval_ValueChanged"
+                            ToolTip="Minimum wait time before next random WASD keypress" />
                     <TextBox Name="TextBoxWasdMinInterval" Text="300" Width="50" Margin="5,0,0,0"
-                             KeyUp="TextBoxWasdMinInterval_KeyUp" LostFocus="TextBoxWasdMinInterval_LostFocus" />
+                             KeyUp="TextBoxWasdMinInterval_KeyUp" LostFocus="TextBoxWasdMinInterval_LostFocus"
+                             ToolTip="Minimum wait time before next random WASD keypress" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
-                    <Label Content="Max Interval (ms):" VerticalAlignment="Center" Width="120" />
+                    <Label Content="Max Interval (ms):" VerticalAlignment="Center" Width="120"
+                           ToolTip="Maximum time between WASD keypresses (100-2000ms)"/>
                     <Slider Name="SliderWasdMaxInterval" Minimum="100" Maximum="2000" Value="800" Width="150"
-                            Margin="5,0,0,0" ValueChanged="SliderWasdMaxInterval_ValueChanged" />
+                            Margin="5,0,0,0" ValueChanged="SliderWasdMaxInterval_ValueChanged"
+                            ToolTip="Maximum wait time before next random WASD keypress" />
                     <TextBox Name="TextBoxWasdMaxInterval" Text="800" Width="50" Margin="5,0,0,0"
-                             KeyUp="TextBoxWasdMaxInterval_KeyUp" LostFocus="TextBoxWasdMaxInterval_LostFocus" />
+                             KeyUp="TextBoxWasdMaxInterval_KeyUp" LostFocus="TextBoxWasdMaxInterval_LostFocus"
+                             ToolTip="Maximum wait time before next random WASD keypress" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="5,5,0,5">
-                    <Label Content="Click Probability (%):" VerticalAlignment="Center" Width="120" />
+                    <Label Content="Click Probability (%):" VerticalAlignment="Center" Width="120"
+                           ToolTip="Percentage chance of mouse click with each WASD keypress (0-100%)"/>
                     <Slider Name="SliderWasdClickProb" Minimum="0" Maximum="100" Value="50" Width="150"
-                            Margin="5,0,0,0" ValueChanged="SliderWasdClickProb_ValueChanged" />
+                            Margin="5,0,0,0" ValueChanged="SliderWasdClickProb_ValueChanged"
+                            ToolTip="Chance of mouse click after each keypress (50% = half the time, 100% = every time)" />
                     <TextBox Name="TextBoxWasdClickProb" Text="50" Width="50" Margin="5,0,0,0"
-                             KeyUp="TextBoxWasdClickProb_KeyUp" LostFocus="TextBoxWasdClickProb_LostFocus" />
+                             KeyUp="TextBoxWasdClickProb_KeyUp" LostFocus="TextBoxWasdClickProb_LostFocus"
+                             ToolTip="Chance of mouse click after each keypress (50% = half the time, 100% = every time)" />
                 </StackPanel>
             </StackPanel>
         </Expander>
