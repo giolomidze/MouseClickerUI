@@ -79,7 +79,10 @@ public class RandomWasdFeatureTests
         // Arrange
         var inputSimulator = new TestInputSimulator();
         var windowManager = new TestWindowManager();
-        var state = new ApplicationState();
+        var state = new ApplicationState
+        {
+            RandomWasdClickProbability = 50 // Explicitly set to 50%
+        };
         var feature = new RandomWasdFeature(inputSimulator, windowManager, state);
 
         // Act - Execute many times to get statistical sample
@@ -105,6 +108,96 @@ public class RandomWasdFeatureTests
 
         Assert.True(clickPercentage >= 35 && clickPercentage <= 65,
             $"Expected click probability between 35-65%, got {clickPercentage:F1}%");
+    }
+
+    [Fact]
+    public void Execute_NeverClicksWhenProbabilityIsZero()
+    {
+        // Arrange
+        var inputSimulator = new TestInputSimulator();
+        var windowManager = new TestWindowManager();
+        var state = new ApplicationState
+        {
+            RandomWasdClickProbability = 0 // 0% probability
+        };
+        var feature = new RandomWasdFeature(inputSimulator, windowManager, state);
+
+        // Act - Execute many times
+        int iterations = 100;
+        for (int i = 0; i < iterations; i++)
+        {
+            feature.Reset();
+            feature.Execute();
+
+            // Wait for delayed click window
+            Thread.Sleep(60);
+            feature.Execute();
+        }
+
+        // Assert
+        Assert.Equal(iterations, inputSimulator.KeyPresses.Count);
+        Assert.Equal(0, inputSimulator.MouseClicks); // Should never click
+    }
+
+    [Fact]
+    public void Execute_AlwaysClicksWhenProbabilityIs100()
+    {
+        // Arrange
+        var inputSimulator = new TestInputSimulator();
+        var windowManager = new TestWindowManager();
+        var state = new ApplicationState
+        {
+            RandomWasdClickProbability = 100 // 100% probability
+        };
+        var feature = new RandomWasdFeature(inputSimulator, windowManager, state);
+
+        // Act - Execute many times
+        int iterations = 100;
+        for (int i = 0; i < iterations; i++)
+        {
+            feature.Reset();
+            feature.Execute();
+
+            // Wait for delayed click to trigger
+            Thread.Sleep(60);
+            feature.Execute();
+        }
+
+        // Assert
+        Assert.Equal(iterations, inputSimulator.KeyPresses.Count);
+        Assert.Equal(iterations, inputSimulator.MouseClicks); // Should always click
+    }
+
+    [Fact]
+    public void Execute_RespectsConfiguredIntervals()
+    {
+        // Arrange
+        var inputSimulator = new TestInputSimulator();
+        var windowManager = new TestWindowManager();
+        var state = new ApplicationState
+        {
+            RandomWasdMinInterval = 500,
+            RandomWasdMaxInterval = 600
+        };
+        var feature = new RandomWasdFeature(inputSimulator, windowManager, state);
+
+        // Act - First execution should press immediately
+        feature.Execute();
+        Assert.Single(inputSimulator.KeyPresses);
+
+        // Wait less than minimum interval
+        Thread.Sleep(400);
+        feature.Execute();
+
+        // Assert - Should still have only one keypress (interval not elapsed)
+        Assert.Single(inputSimulator.KeyPresses);
+
+        // Wait for minimum interval to pass
+        Thread.Sleep(200); // Total: 600ms
+        feature.Execute();
+
+        // Assert - Should now have two keypresses
+        Assert.Equal(2, inputSimulator.KeyPresses.Count);
     }
 
     [Fact]
