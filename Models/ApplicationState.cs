@@ -18,12 +18,12 @@ public class ApplicationState
     public string TargetWindowTitle { get; set; } = string.Empty;
 
     // Configuration
-    public int ClickDelay { get; set; } = 1;
+    public int ClickDelay { get; set; } = 5;
 
     // Random WASD Configuration
     public int RandomWasdMinInterval { get; set; } = 300; // ms
     public int RandomWasdMaxInterval { get; set; } = 800; // ms
-    public int RandomWasdClickProbability { get; set; } = 50; // 0-100%
+    public int RandomWasdClickProbability { get; set; } = 80; // 0-100%
 
     // Previous key states for edge detection
     public bool PrevEnableListeningState { get; set; }

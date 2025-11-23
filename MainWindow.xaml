@@ -56,10 +56,10 @@
         <StackPanel Orientation="Horizontal" Margin="10,5,0,0" VerticalAlignment="Top">
             <Label Content="Delay (ms):" VerticalAlignment="Center" HorizontalAlignment="Left"
                    ToolTip="Time interval between mouse clicks when using Key 8 feature (1-1000ms)" />
-            <Slider Name="SliderDelay" Minimum="1" Maximum="1000" Value="1" Width="200" Margin="5,0,0,0"
+            <Slider Name="SliderDelay" Minimum="1" Maximum="1000" Value="5" Width="200" Margin="5,0,0,0"
                     ValueChanged="SliderDelay_ValueChanged"
                     ToolTip="Adjust delay between clicks. Lower values = faster clicking (1ms = very fast, 1000ms = 1 second)" />
-            <TextBox Name="TextBoxDelay" Text="1" Width="50" Margin="5,0,0,0" KeyUp="TextBoxDelay_KeyUp"
+            <TextBox Name="TextBoxDelay" Text="5" Width="50" Margin="5,0,0,0" KeyUp="TextBoxDelay_KeyUp"
                      LostFocus="TextBoxDelay_LostFocus"
                      ToolTip="Enter delay value directly (1-1000)" />
         </StackPanel>
@@ -89,10 +89,10 @@
                 <StackPanel Orientation="Horizontal" Margin="5,5,0,5">
                     <Label Content="Click Probability (%):" VerticalAlignment="Center" Width="120"
                            ToolTip="Percentage chance of mouse click with each WASD keypress (0-100%)"/>
-                    <Slider Name="SliderWasdClickProb" Minimum="0" Maximum="100" Value="50" Width="150"
+                    <Slider Name="SliderWasdClickProb" Minimum="0" Maximum="100" Value="80" Width="150"
                             Margin="5,0,0,0" ValueChanged="SliderWasdClickProb_ValueChanged"
                             ToolTip="Chance of mouse click after each keypress (50% = half the time, 100% = every time)" />
-                    <TextBox Name="TextBoxWasdClickProb" Text="50" Width="50" Margin="5,0,0,0"
+                    <TextBox Name="TextBoxWasdClickProb" Text="80" Width="50" Margin="5,0,0,0"
                              KeyUp="TextBoxWasdClickProb_KeyUp" LostFocus="TextBoxWasdClickProb_LostFocus"
                              ToolTip="Chance of mouse click after each keypress (50% = half the time, 100% = every time)" />
                 </StackPanel>
