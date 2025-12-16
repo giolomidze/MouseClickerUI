@@ -12,7 +12,9 @@ public class RandomWasdFeatureTests
         // Arrange
         var inputSimulator = new TestInputSimulator();
         var windowManager = new TestWindowManager();
-        var feature = new RandomWasdFeature(inputSimulator, windowManager);
+        var state = new ApplicationState();
+        var clock = new FakeClock();
+        var feature = new RandomWasdFeature(inputSimulator, windowManager, state, clock);
 
         // Execute to change internal state
         feature.Execute();
@@ -36,7 +38,9 @@ public class RandomWasdFeatureTests
         // Arrange
         var inputSimulator = new TestInputSimulator();
         var windowManager = new TestWindowManager();
-        var feature = new RandomWasdFeature(inputSimulator, windowManager);
+        var state = new ApplicationState();
+        var clock = new FakeClock();
+        var feature = new RandomWasdFeature(inputSimulator, windowManager, state, clock);
 
         // Act
         feature.Execute();
@@ -52,7 +56,9 @@ public class RandomWasdFeatureTests
         // Arrange
         var inputSimulator = new TestInputSimulator();
         var windowManager = new TestWindowManager();
-        var feature = new RandomWasdFeature(inputSimulator, windowManager);
+        var state = new ApplicationState();
+        var clock = new FakeClock();
+        var feature = new RandomWasdFeature(inputSimulator, windowManager, state, clock);
 
         // Act - Execute multiple times to get various random selections
         for (int i = 0; i < 100; i++)
@@ -76,7 +82,12 @@ public class RandomWasdFeatureTests
         // Arrange
         var inputSimulator = new TestInputSimulator();
         var windowManager = new TestWindowManager();
-        var feature = new RandomWasdFeature(inputSimulator, windowManager);
+        var state = new ApplicationState
+        {
+            RandomWasdClickProbability = 50 // Explicitly set to 50%
+        };
+        var clock = new FakeClock();
+        var feature = new RandomWasdFeature(inputSimulator, windowManager, state, clock);
 
         // Act - Execute many times to get statistical sample
         int iterations = 200;
@@ -84,6 +95,10 @@ public class RandomWasdFeatureTests
         {
             // Reset to trigger immediate keypress
             feature.Reset();
+            feature.Execute();
+
+            // Wait for delayed click to trigger (50+ ms)
+            clock.Advance(TimeSpan.FromMilliseconds(60));
             feature.Execute();
         }
 
@@ -100,12 +115,105 @@ public class RandomWasdFeatureTests
     }
 
     [Fact]
+    public void Execute_NeverClicksWhenProbabilityIsZero()
+    {
+        // Arrange
+        var inputSimulator = new TestInputSimulator();
+        var windowManager = new TestWindowManager();
+        var state = new ApplicationState
+        {
+            RandomWasdClickProbability = 0 // 0% probability
+        };
+        var clock = new FakeClock();
+        var feature = new RandomWasdFeature(inputSimulator, windowManager, state, clock);
+
+        // Act - Execute many times
+        int iterations = 100;
+        for (int i = 0; i < iterations; i++)
+        {
+            feature.Reset();
+            feature.Execute();
+
+            clock.Advance(TimeSpan.FromMilliseconds(60));
+            feature.Execute();
+        }
+
+        // Assert
+        Assert.Equal(iterations, inputSimulator.KeyPresses.Count);
+        Assert.Equal(0, inputSimulator.MouseClicks); // Should never click
+    }
+
+    [Fact]
+    public void Execute_AlwaysClicksWhenProbabilityIs100()
+    {
+        // Arrange
+        var inputSimulator = new TestInputSimulator();
+        var windowManager = new TestWindowManager();
+        var state = new ApplicationState
+        {
+            RandomWasdClickProbability = 100 // 100% probability
+        };
+        var clock = new FakeClock();
+        var feature = new RandomWasdFeature(inputSimulator, windowManager, state, clock);
+
+        // Act - Execute many times
+        int iterations = 100;
+        for (int i = 0; i < iterations; i++)
+        {
+            feature.Reset();
+            feature.Execute();
+
+            clock.Advance(TimeSpan.FromMilliseconds(60));
+            feature.Execute();
+        }
+
+        // Assert
+        Assert.Equal(iterations, inputSimulator.KeyPresses.Count);
+        Assert.Equal(iterations, inputSimulator.MouseClicks); // Should always click
+    }
+
+    [Fact]
+    public void Execute_RespectsConfiguredIntervals()
+    {
+        // Arrange
+        var inputSimulator = new TestInputSimulator();
+        var windowManager = new TestWindowManager();
+        var state = new ApplicationState
+        {
+            RandomWasdMinInterval = 500,
+            RandomWasdMaxInterval = 600
+        };
+        var clock = new FakeClock();
+        var feature = new RandomWasdFeature(inputSimulator, windowManager, state, clock);
+
+        // Act - First execution should press immediately
+        feature.Execute();
+        Assert.Single(inputSimulator.KeyPresses);
+
+        // Wait less than minimum interval
+        clock.Advance(TimeSpan.FromMilliseconds(400));
+        feature.Execute();
+
+        // Assert - Should still have only one keypress (interval not elapsed)
+        Assert.Single(inputSimulator.KeyPresses);
+
+        // Wait for minimum interval to pass
+        clock.Advance(TimeSpan.FromMilliseconds(200)); // Total: 600ms
+        feature.Execute();
+
+        // Assert - Should now have two keypresses
+        Assert.Equal(2, inputSimulator.KeyPresses.Count);
+    }
+
+    [Fact]
     public void Execute_DoesNotPressKeyWhenTargetWindowNotActive()
     {
         // Arrange
         var inputSimulator = new TestInputSimulator();
         var windowManager = new TestWindowManager { IsTarget = false };
-        var feature = new RandomWasdFeature(inputSimulator, windowManager);
+        var state = new ApplicationState();
+        var clock = new FakeClock();
+        var feature = new RandomWasdFeature(inputSimulator, windowManager, state, clock);
 
         // Act
         feature.Execute();
@@ -122,7 +230,9 @@ public class RandomWasdFeatureTests
         // Arrange
         var inputSimulator = new TestInputSimulator();
         var windowManager = new TestWindowManager();
-        var feature = new RandomWasdFeature(inputSimulator, windowManager);
+        var state = new ApplicationState();
+        var clock = new FakeClock();
+        var feature = new RandomWasdFeature(inputSimulator, windowManager, state, clock);
 
         // Act - First execution should press immediately
         feature.Execute();
@@ -145,13 +255,18 @@ public class RandomWasdFeatureTests
         // Arrange
         var inputSimulator = new TestInputSimulator();
         var windowManager = new TestWindowManager();
-        var feature = new RandomWasdFeature(inputSimulator, windowManager);
+        var state = new ApplicationState();
+        var clock = new FakeClock();
+        var feature = new RandomWasdFeature(inputSimulator, windowManager, state, clock);
 
         // Act
         int iterations = 100;
         for (int i = 0; i < iterations; i++)
         {
             feature.Reset();
+            feature.Execute();
+
+            clock.Advance(TimeSpan.FromMilliseconds(60));
             feature.Execute();
         }
 
@@ -160,7 +275,7 @@ public class RandomWasdFeatureTests
         Assert.True(inputSimulator.MouseClicks <= inputSimulator.KeyPresses.Count,
             "Mouse clicks should never exceed keypresses");
 
-        // Should have exactly as many keypresses as iterations
+        // Should have exactly as many keypresses as iterations (one per reset/execute)
         Assert.Equal(iterations, inputSimulator.KeyPresses.Count);
     }
 
@@ -170,7 +285,8 @@ public class RandomWasdFeatureTests
         // Arrange
         var inputSimulator = new TestInputSimulator();
         var windowManager = new TestWindowManager();
-        var feature = new RandomWasdFeature(inputSimulator, windowManager);
+        var state = new ApplicationState();
+        var feature = new RandomWasdFeature(inputSimulator, windowManager, state);
 
         // Act - Execute many times to ensure all keys are selected at least once
         for (int i = 0; i < 100; i++)
@@ -222,6 +338,16 @@ public class RandomWasdFeatureTests
         public override bool IsTargetWindow()
         {
             return IsTarget;
+        }
+    }
+
+    private class FakeClock : IClock
+    {
+        public DateTime Now { get; private set; } = DateTime.Now;
+
+        public void Advance(TimeSpan delta)
+        {
+            Now = Now.Add(delta);
         }
     }
 }

@@ -20,6 +20,11 @@ public class ApplicationState
     // Configuration
     public int ClickDelay { get; set; } = 1;
 
+    // Random WASD Configuration
+    public int RandomWasdMinInterval { get; set; } = 300; // ms
+    public int RandomWasdMaxInterval { get; set; } = 800; // ms
+    public int RandomWasdClickProbability { get; set; } = 80; // 0-100%
+
     // Previous key states for edge detection
     public bool PrevEnableListeningState { get; set; }
     public bool PrevDisableListeningState { get; set; }

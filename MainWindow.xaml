@@ -47,22 +47,64 @@
                 <Run Text=" key"/>
             </TextBlock>
         </Expander>
-        <Label Content="Select an application:" VerticalAlignment="Top" HorizontalAlignment="Left" />
-        <ComboBox Name="ComboBoxProcesses" Width="360" Height="30" VerticalAlignment="Top" Margin="0,5,0,0" />
+        <Label Content="Select an application:" VerticalAlignment="Top" HorizontalAlignment="Left"
+               ToolTip="Choose the target application window to send mouse clicks and keypresses to" />
+        <ComboBox Name="ComboBoxProcesses" Width="360" Height="30" VerticalAlignment="Top" Margin="0,5,0,0"
+                  ToolTip="Select the application you want to automate. Only applications with visible windows are shown." />
         <TextBlock Name="TextBlockValidationMessage" Foreground="Red" Visibility="Collapsed" VerticalAlignment="Top"
                    HorizontalAlignment="Left" Margin="0,5,0,0" />
         <StackPanel Orientation="Horizontal" Margin="10,5,0,0" VerticalAlignment="Top">
-            <Label Content="Delay (ms):" VerticalAlignment="Center" HorizontalAlignment="Left" />
-            <Slider Name="SliderDelay" Minimum="1" Maximum="1000" Value="1" Width="200" Margin="5,0,0,0"
-                    ValueChanged="SliderDelay_ValueChanged" />
-            <TextBox Name="TextBoxDelay" Text="1" Width="50" Margin="5,0,0,0" KeyUp="TextBoxDelay_KeyUp"
-                     LostFocus="TextBoxDelay_LostFocus" />
+            <Label Content="Delay (ms):" VerticalAlignment="Center" HorizontalAlignment="Left"
+                   ToolTip="Time interval between mouse clicks when using Key 8 feature (1-1000ms)" />
+            <Slider Name="SliderDelay" Minimum="1" Maximum="1000" Value="5" Width="200" Margin="5,0,0,0"
+                    ValueChanged="SliderDelay_ValueChanged"
+                    ToolTip="Adjust delay between clicks. Lower values = faster clicking (1ms = very fast, 1000ms = 1 second)" />
+            <TextBox Name="TextBoxDelay" Text="5" Width="50" Margin="5,0,0,0" KeyUp="TextBoxDelay_KeyUp"
+                     LostFocus="TextBoxDelay_LostFocus"
+                     ToolTip="Enter delay value directly (1-1000)" />
         </StackPanel>
+        <Expander Header="Random WASD Settings (Key 6)" Margin="0,10,0,0"
+                  Background="#F5F5F5" Padding="8">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                    <Label Content="Min Interval (ms):" VerticalAlignment="Center" Width="120"
+                           ToolTip="Minimum time between WASD keypresses (100-2000ms)"/>
+                    <Slider Name="SliderWasdMinInterval" Minimum="100" Maximum="2000" Value="300" Width="150"
+                            Margin="5,0,0,0" ValueChanged="SliderWasdMinInterval_ValueChanged"
+                            ToolTip="Minimum wait time before next random WASD keypress" />
+                    <TextBox Name="TextBoxWasdMinInterval" Text="300" Width="50" Margin="5,0,0,0"
+                             KeyUp="TextBoxWasdMinInterval_KeyUp" LostFocus="TextBoxWasdMinInterval_LostFocus"
+                             ToolTip="Minimum wait time before next random WASD keypress" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                    <Label Content="Max Interval (ms):" VerticalAlignment="Center" Width="120"
+                           ToolTip="Maximum time between WASD keypresses (100-2000ms)"/>
+                    <Slider Name="SliderWasdMaxInterval" Minimum="100" Maximum="2000" Value="800" Width="150"
+                            Margin="5,0,0,0" ValueChanged="SliderWasdMaxInterval_ValueChanged"
+                            ToolTip="Maximum wait time before next random WASD keypress" />
+                    <TextBox Name="TextBoxWasdMaxInterval" Text="800" Width="50" Margin="5,0,0,0"
+                             KeyUp="TextBoxWasdMaxInterval_KeyUp" LostFocus="TextBoxWasdMaxInterval_LostFocus"
+                             ToolTip="Maximum wait time before next random WASD keypress" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="5,5,0,5">
+                    <Label Content="Click Probability (%):" VerticalAlignment="Center" Width="120"
+                           ToolTip="Percentage chance of mouse click with each WASD keypress (0-100%)"/>
+                    <Slider Name="SliderWasdClickProb" Minimum="0" Maximum="100" Value="80" Width="150"
+                            Margin="5,0,0,0" ValueChanged="SliderWasdClickProb_ValueChanged"
+                            ToolTip="Chance of mouse click after each keypress (50% = half the time, 100% = every time)" />
+                    <TextBox Name="TextBoxWasdClickProb" Text="80" Width="50" Margin="5,0,0,0"
+                             KeyUp="TextBoxWasdClickProb_KeyUp" LostFocus="TextBoxWasdClickProb_LostFocus"
+                             ToolTip="Chance of mouse click after each keypress (50% = half the time, 100% = every time)" />
+                </StackPanel>
+            </StackPanel>
+        </Expander>
         <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
             <Button Name="ButtonStartListening" Content="Start Listening" Width="120" Height="30"
-                    Click="buttonStartListening_Click" />
+                    Click="buttonStartListening_Click"
+                    ToolTip="Begin listening for key commands in the target application (same as pressing Key 1)" />
             <Button Name="ButtonStopListening" Content="Stop Listening" Width="120" Height="30" Margin="10,0,0,0"
-                    Click="buttonStopListening_Click" />
+                    Click="buttonStopListening_Click"
+                    ToolTip="Stop listening and disable all active features (same as pressing Key 0)" />
         </StackPanel>
         <Label Name="LabelStatus" Content="Status" Margin="0,10,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
     </StackPanel>
