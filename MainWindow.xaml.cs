@@ -218,7 +218,9 @@ public partial class MainWindow
         if (TextBoxWasdMinInterval != null)
         {
             _state.RandomWasdMinInterval = (int)e.NewValue;
+            NormalizeRandomWasdIntervals();
             TextBoxWasdMinInterval.Text = _state.RandomWasdMinInterval.ToString();
+            TextBoxWasdMaxInterval.Text = _state.RandomWasdMaxInterval.ToString();
         }
     }
 
@@ -236,7 +238,11 @@ public partial class MainWindow
             }
 
             _state.RandomWasdMinInterval = newValue;
-            SliderWasdMinInterval.Value = newValue;
+            NormalizeRandomWasdIntervals();
+            SliderWasdMinInterval.Value = _state.RandomWasdMinInterval;
+            SliderWasdMaxInterval.Value = _state.RandomWasdMaxInterval;
+            TextBoxWasdMinInterval.Text = _state.RandomWasdMinInterval.ToString();
+            TextBoxWasdMaxInterval.Text = _state.RandomWasdMaxInterval.ToString();
         }
         else
         {
@@ -258,7 +264,11 @@ public partial class MainWindow
             }
 
             _state.RandomWasdMinInterval = newValue;
-            SliderWasdMinInterval.Value = newValue;
+            NormalizeRandomWasdIntervals();
+            SliderWasdMinInterval.Value = _state.RandomWasdMinInterval;
+            SliderWasdMaxInterval.Value = _state.RandomWasdMaxInterval;
+            TextBoxWasdMinInterval.Text = _state.RandomWasdMinInterval.ToString();
+            TextBoxWasdMaxInterval.Text = _state.RandomWasdMaxInterval.ToString();
         }
         else
         {
@@ -271,6 +281,8 @@ public partial class MainWindow
         if (TextBoxWasdMaxInterval != null)
         {
             _state.RandomWasdMaxInterval = (int)e.NewValue;
+            NormalizeRandomWasdIntervals();
+            TextBoxWasdMinInterval.Text = _state.RandomWasdMinInterval.ToString();
             TextBoxWasdMaxInterval.Text = _state.RandomWasdMaxInterval.ToString();
         }
     }
@@ -289,7 +301,11 @@ public partial class MainWindow
             }
 
             _state.RandomWasdMaxInterval = newValue;
-            SliderWasdMaxInterval.Value = newValue;
+            NormalizeRandomWasdIntervals();
+            SliderWasdMinInterval.Value = _state.RandomWasdMinInterval;
+            SliderWasdMaxInterval.Value = _state.RandomWasdMaxInterval;
+            TextBoxWasdMinInterval.Text = _state.RandomWasdMinInterval.ToString();
+            TextBoxWasdMaxInterval.Text = _state.RandomWasdMaxInterval.ToString();
         }
         else
         {
@@ -311,7 +327,11 @@ public partial class MainWindow
             }
 
             _state.RandomWasdMaxInterval = newValue;
-            SliderWasdMaxInterval.Value = newValue;
+            NormalizeRandomWasdIntervals();
+            SliderWasdMinInterval.Value = _state.RandomWasdMinInterval;
+            SliderWasdMaxInterval.Value = _state.RandomWasdMaxInterval;
+            TextBoxWasdMinInterval.Text = _state.RandomWasdMinInterval.ToString();
+            TextBoxWasdMaxInterval.Text = _state.RandomWasdMaxInterval.ToString();
         }
         else
         {
@@ -369,6 +389,41 @@ public partial class MainWindow
         else
         {
             TextBoxWasdClickProb.Text = _state.RandomWasdClickProbability.ToString();
+        }
+    }
+
+    private void NormalizeRandomWasdIntervals()
+    {
+        var minInterval = _state.RandomWasdMinInterval;
+        var maxInterval = _state.RandomWasdMaxInterval;
+
+        if (minInterval <= maxInterval)
+        {
+            return;
+        }
+
+        // Swap to ensure valid ordering for Random.Next
+        _state.RandomWasdMinInterval = maxInterval;
+        _state.RandomWasdMaxInterval = minInterval;
+
+        if (SliderWasdMinInterval != null)
+        {
+            SliderWasdMinInterval.Value = _state.RandomWasdMinInterval;
+        }
+
+        if (SliderWasdMaxInterval != null)
+        {
+            SliderWasdMaxInterval.Value = _state.RandomWasdMaxInterval;
+        }
+
+        if (TextBoxWasdMinInterval != null)
+        {
+            TextBoxWasdMinInterval.Text = _state.RandomWasdMinInterval.ToString();
+        }
+
+        if (TextBoxWasdMaxInterval != null)
+        {
+            TextBoxWasdMaxInterval.Text = _state.RandomWasdMaxInterval.ToString();
         }
     }
 

@@ -17,6 +17,7 @@ public class RandomWasdFeature : IFeature
     private readonly InputSimulator _inputSimulator;
     private readonly WindowManager _windowManager;
     private readonly ApplicationState _state;
+    private readonly IClock _clock;
     private readonly Random _random = new();
 
     private DateTime _lastWasdKeyPressTime = DateTime.MinValue;
@@ -24,16 +25,17 @@ public class RandomWasdFeature : IFeature
     private int _nextWasdIntervalMs;
     private bool _shouldClickAfterDelay;
 
-    public RandomWasdFeature(InputSimulator inputSimulator, WindowManager windowManager, ApplicationState state)
+    public RandomWasdFeature(InputSimulator inputSimulator, WindowManager windowManager, ApplicationState state, IClock? clock = null)
     {
         _inputSimulator = inputSimulator;
         _windowManager = windowManager;
         _state = state;
+        _clock = clock ?? new RealTimeClock();
     }
 
     public void Execute()
     {
-        var now = DateTime.Now;
+        var now = _clock.Now;
 
         // Handle delayed click if pending
         if (_shouldClickAfterDelay && _lastClickTime != DateTime.MinValue)
@@ -88,7 +90,18 @@ public class RandomWasdFeature : IFeature
 
             // Update last press time and calculate next interval using configured values
             _lastWasdKeyPressTime = now;
-            _nextWasdIntervalMs = _random.Next(_state.RandomWasdMinInterval, _state.RandomWasdMaxInterval + 1);
+            var minInterval = _state.RandomWasdMinInterval;
+            var maxInterval = _state.RandomWasdMaxInterval;
+
+            if (minInterval > maxInterval)
+            {
+                // Keep state consistent even if UI values were configured out of order
+                (minInterval, maxInterval) = (maxInterval, minInterval);
+                _state.RandomWasdMinInterval = minInterval;
+                _state.RandomWasdMaxInterval = maxInterval;
+            }
+
+            _nextWasdIntervalMs = _random.Next(minInterval, maxInterval + 1);
         }
     }
 

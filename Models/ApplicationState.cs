@@ -18,7 +18,7 @@ public class ApplicationState
     public string TargetWindowTitle { get; set; } = string.Empty;
 
     // Configuration
-    public int ClickDelay { get; set; } = 5;
+    public int ClickDelay { get; set; } = 1;
 
     // Random WASD Configuration
     public int RandomWasdMinInterval { get; set; } = 300; // ms
