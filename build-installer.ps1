@@ -3,7 +3,8 @@
 
 param(
     [string]$Version = "1.0.0",
-    [string]$InnoSetupPath = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+    [string]$InnoSetupPath = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe",
+    [switch]$FrameworkDependent # If set, build a framework-dependent package instead of self-contained
 )
 
 $ErrorActionPreference = "Stop"
@@ -30,8 +31,21 @@ New-Item -ItemType Directory -Path "dist" -Force | Out-Null
 
 # Publish the application
 Write-Host ""
-Write-Host "Publishing application..." -ForegroundColor Green
-dotnet publish --configuration Release --runtime win-x64 --self-contained true
+if ($FrameworkDependent) {
+    Write-Host "Publishing application (framework-dependent)..." -ForegroundColor Green
+    dotnet publish --configuration Release --runtime win-x64 `
+        /p:SelfContained=false `
+        /p:PublishSingleFile=false `
+        /p:IncludeNativeLibrariesForSelfExtract=false `
+        /p:PublishReadyToRun=true
+} else {
+    Write-Host "Publishing application (self-contained)..." -ForegroundColor Green
+    dotnet publish --configuration Release --runtime win-x64 `
+        /p:SelfContained=true `
+        /p:PublishSingleFile=true `
+        /p:IncludeNativeLibrariesForSelfExtract=true `
+        /p:PublishReadyToRun=true
+}
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "ERROR: Failed to publish application" -ForegroundColor Red
@@ -73,10 +87,12 @@ if (Test-Path $installerPath) {
     Write-Host "========================================" -ForegroundColor Green
     Write-Host "Installer location: $installerPath" -ForegroundColor Cyan
     Write-Host "Installer size: $([math]::Round($installerSize, 2)) MB" -ForegroundColor Cyan
+    if ($FrameworkDependent) {
+        Write-Host "Note: Framework-dependent build selected. Target machines must have the .NET 9.0 Desktop Runtime (x64) installed." -ForegroundColor Yellow
+    }
     Write-Host ""
     Write-Host "The installer is ready for distribution." -ForegroundColor Green
 } else {
     Write-Host "ERROR: Installer was not created" -ForegroundColor Red
     exit 1
 }
-

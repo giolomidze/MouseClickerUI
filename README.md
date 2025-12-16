@@ -113,6 +113,20 @@ bin/Release/net9.0-windows/win-x64/publish/MouseClickerUI.exe
 dotnet publish --configuration Release --runtime win-x64 --self-contained false
 ```
 
+When distributing the framework-dependent build, users must have the matching .NET runtime installed on their machine. Point them to the official download page for the .NET 9.0 Desktop Runtime (x64): https://dotnet.microsoft.com/en-us/download/dotnet/9.0/runtime. Once installed, they can run `MouseClickerUI.exe` from the publish directory.
+
+#### Build the Inno Setup Installer
+```powershell
+.\build-installer.ps1
+```
+
+Pass `-FrameworkDependent` to generate a smaller installer that depends on the target machine having the .NET Desktop Runtime:
+```powershell
+.\build-installer.ps1 -FrameworkDependent
+```
+
+Inno Setup 6 is required (the script defaults to `C:\Program Files (x86)\Inno Setup 6\ISCC.exe`). For framework-dependent builds, the installer now includes all published DLLs/config files (no single-file packing); the target machine still needs the [.NET 9.0 Desktop Runtime (x64)](https://dotnet.microsoft.com/en-us/download/dotnet/9.0/runtime) before running `MouseClickerUI.exe`.
+
 ### Build Output
 
 After publishing, you'll find:

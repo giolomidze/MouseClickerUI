@@ -24,7 +24,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: checkedonce
 
 [Files]
-Source: "bin\Release\net9.0-windows\win-x64\publish\MouseClickerUI.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\net9.0-windows\win-x64\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\Mouse Clicker UI"; Filename: "{app}\MouseClickerUI.exe"
@@ -33,4 +33,3 @@ Name: "{commondesktop}\Mouse Clicker UI"; Filename: "{app}\MouseClickerUI.exe"; 
 
 [Run]
 Filename: "{app}\MouseClickerUI.exe"; Description: "{cm:LaunchProgram,Mouse Clicker UI}"; Flags: nowait postinstall skipifsilent
-
