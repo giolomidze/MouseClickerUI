@@ -33,14 +33,14 @@ New-Item -ItemType Directory -Path "dist" -Force | Out-Null
 Write-Host ""
 if ($FrameworkDependent) {
     Write-Host "Publishing application (framework-dependent)..." -ForegroundColor Green
-    dotnet publish --configuration Release --runtime win-x64 `
+    dotnet publish "MouseClickerUI.csproj" --configuration Release --runtime win-x64 `
         /p:SelfContained=false `
         /p:PublishSingleFile=false `
         /p:IncludeNativeLibrariesForSelfExtract=false `
         /p:PublishReadyToRun=true
 } else {
     Write-Host "Publishing application (self-contained)..." -ForegroundColor Green
-    dotnet publish --configuration Release --runtime win-x64 `
+    dotnet publish "MouseClickerUI.csproj" --configuration Release --runtime win-x64 `
         /p:SelfContained=true `
         /p:PublishSingleFile=true `
         /p:IncludeNativeLibrariesForSelfExtract=true `
