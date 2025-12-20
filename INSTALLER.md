@@ -42,6 +42,18 @@ If Inno Setup is installed in a different location:
 .\build-installer.ps1 -InnoSetupPath "C:\Custom\Path\ISCC.exe"
 ```
 
+## GitHub Actions (Windows CI)
+
+You can build the installer in GitHub Actions using the manual workflow:
+
+1. Go to **Actions** → **Build Windows Installer**.
+2. Click **Run workflow**.
+3. Optionally set:
+   - **version** to override `AppVersion` in `setup.iss`.
+   - **framework_dependent** to produce a smaller installer (requires .NET Desktop Runtime on target machines).
+
+The workflow publishes the app, compiles the Inno Setup installer, and uploads `MouseClickerUI-Setup.exe` as a build artifact.
+
 ## Manual Build
 
 ### Step 1: Publish the Application
@@ -138,6 +150,9 @@ MouseClickerUI/
 ├── build-installer.ps1       # Automated build script
 ├── INSTALLER.md              # This file
 ├── app.ico                   # Installer icon
+├── .github/
+│   └── workflows/
+│       └── build-installer.yml  # GitHub Actions workflow
 └── dist/                     # Output directory (created during build)
     └── MouseClickerUI-Setup.exe
 ```
@@ -149,4 +164,3 @@ Consider:
 - Adding version information to the executable
 - Setting up automated builds in CI/CD
 - Creating a download page for distribution
-
