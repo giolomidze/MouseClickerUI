@@ -28,6 +28,12 @@ jobs:
       - name: Install Inno Setup
         run: choco install innosetup -y
 
+      - name: Restore
+        run: dotnet restore
+
+      - name: Test
+        run: dotnet test --configuration Release --no-restore
+
       - name: Build installer
         shell: pwsh
         run: |
