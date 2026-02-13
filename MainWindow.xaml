@@ -11,7 +11,7 @@
                   Background="#F5F5F5" Padding="8">
             <TextBlock TextWrapping="Wrap" FontSize="12" LineHeight="18">
                 <Run Text="1. " FontWeight="Bold"/>
-                <Run Text="Select target application from dropdown"/>
+                <Run Text="Select target mode (Auto-detect or Manual) and choose application"/>
                 <LineBreak/>
                 <Run Text="2. " FontWeight="Bold"/>
                 <Run Text="Set click delay (1-1000ms)"/>
@@ -39,7 +39,7 @@
                 <Run Text="7. " FontWeight="Bold"/>
                 <Run Text="Press "/>
                 <Run Text="6" FontWeight="Bold"/>
-                <Run Text=" to toggle random WASD key presses + mouse clicks (50% chance)"/>
+                <Run Text=" to toggle random WASD key presses + mouse clicks (configurable chance)"/>
                 <LineBreak/>
                 <Run Text="8. " FontWeight="Bold"/>
                 <Run Text="Click 'Stop Listening' or press "/>
@@ -53,7 +53,7 @@
             <RadioButton Name="RadioAutoDetect" Content="Auto-detect"
                          GroupName="TargetMode" Margin="0,0,15,0"
                          Checked="RadioAutoDetect_Checked"
-                         ToolTip="Automatically attach to the configured target process when it appears" />
+                         ToolTip="Automatically detect and attach to the target process. Select a process first if none is configured." />
             <RadioButton Name="RadioManual" Content="Manual"
                          GroupName="TargetMode"
                          Checked="RadioManual_Checked"
@@ -114,7 +114,7 @@
         <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
             <Button Name="ButtonStartListening" Content="Start Listening" Width="120" Height="30"
                     Click="buttonStartListening_Click"
-                    ToolTip="Begin listening for key commands in the target application (same as pressing Key 1)" />
+                    ToolTip="Begin listening for key commands in the target application, or resume auto-detection if paused" />
             <Button Name="ButtonStopListening" Content="Stop Listening" Width="120" Height="30" Margin="10,0,0,0"
                     Click="buttonStopListening_Click"
                     ToolTip="Stop listening and disable all active features (same as pressing Key 0)" />

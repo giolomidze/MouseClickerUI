@@ -287,9 +287,8 @@ public partial class MainWindow
 
         if (RadioAutoDetect.IsChecked == true && _config.IsAutoDetectEnabled)
         {
-            ComboBoxProcesses.IsEnabled = false;
             ButtonStartListening.IsEnabled = true;
-            LabelStatus.Content = $"Auto-detect paused — click Start Listening to resume";
+            LabelStatus.Content = "Listening stopped — click Start Listening to resume auto-detect";
         }
         else
         {
@@ -609,8 +608,18 @@ public partial class MainWindow
         // Handle key '1' - Enable listening
         if (isKey1Pressed && !_state.PrevEnableListeningState)
         {
-            _state.IsListening = true;
-            LabelStatus.Content = $"Listening enabled at {DateTime.Now}";
+            if (RadioAutoDetect.IsChecked == true && _config.IsAutoDetectEnabled)
+            {
+                _autoDetectPaused = false;
+                ButtonStartListening.IsEnabled = false;
+                LabelStatus.Content = $"Auto-detect: waiting for {_config.TargetProcessName}...";
+                TryAutoDetectTargetProcess();
+            }
+            else
+            {
+                _state.IsListening = true;
+                LabelStatus.Content = $"Listening enabled at {DateTime.Now}";
+            }
         }
         _state.PrevEnableListeningState = isKey1Pressed;
 
@@ -618,7 +627,17 @@ public partial class MainWindow
         if (isKey0Pressed && !_state.PrevDisableListeningState)
         {
             _state.StopAll();
-            LabelStatus.Content = $"Listening disabled at {DateTime.Now}";
+            _autoDetectPaused = true;
+
+            if (RadioAutoDetect.IsChecked == true && _config.IsAutoDetectEnabled)
+            {
+                ButtonStartListening.IsEnabled = true;
+                LabelStatus.Content = "Listening stopped — click Start Listening to resume auto-detect";
+            }
+            else
+            {
+                LabelStatus.Content = $"Listening disabled at {DateTime.Now}";
+            }
         }
         _state.PrevDisableListeningState = isKey0Pressed;
 
