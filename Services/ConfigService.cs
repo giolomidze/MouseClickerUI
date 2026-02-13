@@ -55,6 +55,17 @@ public class ConfigService
     }
 
     /// <summary>
+    /// Saves the target process name to the config file.
+    /// </summary>
+    public void SaveTargetProcessName(string processName, string? configPath = null)
+    {
+        configPath ??= GetConfigPath();
+        var config = new AppConfig { TargetProcessName = processName };
+        var json = JsonSerializer.Serialize(config, JsonOptions);
+        File.WriteAllText(configPath, json);
+    }
+
+    /// <summary>
     /// Gets the full path to the config file next to the executable.
     /// Uses AppContext.BaseDirectory which works correctly with single-file publish.
     /// </summary>

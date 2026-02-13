@@ -153,4 +153,50 @@ public class ConfigServiceTests
             File.Delete(tempFile);
         }
     }
+
+    [Fact]
+    public void SaveTargetProcessName_WritesConfigFile()
+    {
+        // Arrange
+        var service = new ConfigService();
+        var tempFile = Path.GetTempFileName();
+
+        try
+        {
+            // Act
+            service.SaveTargetProcessName("notepad", tempFile);
+
+            // Assert
+            var config = service.LoadConfig(tempFile);
+            Assert.Equal("notepad", config.TargetProcessName);
+            Assert.True(config.IsAutoDetectEnabled);
+        }
+        finally
+        {
+            File.Delete(tempFile);
+        }
+    }
+
+    [Fact]
+    public void SaveTargetProcessName_OverwritesExistingConfig()
+    {
+        // Arrange
+        var service = new ConfigService();
+        var tempFile = Path.GetTempFileName();
+        File.WriteAllText(tempFile, """{ "targetProcessName": "oldapp" }""");
+
+        try
+        {
+            // Act
+            service.SaveTargetProcessName("newapp", tempFile);
+
+            // Assert
+            var config = service.LoadConfig(tempFile);
+            Assert.Equal("newapp", config.TargetProcessName);
+        }
+        finally
+        {
+            File.Delete(tempFile);
+        }
+    }
 }

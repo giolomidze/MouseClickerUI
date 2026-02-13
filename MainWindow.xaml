@@ -49,6 +49,19 @@
         </Expander>
         <Label Content="Select an application:" VerticalAlignment="Top" HorizontalAlignment="Left"
                ToolTip="Choose the target application window to send mouse clicks and keypresses to" />
+        <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+            <RadioButton Name="RadioAutoDetect" Content="Auto-detect"
+                         GroupName="TargetMode" Margin="0,0,15,0"
+                         Checked="RadioAutoDetect_Checked"
+                         ToolTip="Automatically attach to the configured target process when it appears" />
+            <RadioButton Name="RadioManual" Content="Manual"
+                         GroupName="TargetMode"
+                         Checked="RadioManual_Checked"
+                         ToolTip="Manually select a target application from the dropdown" />
+        </StackPanel>
+        <TextBlock Name="TextBlockAutoDetectInfo"
+                   Foreground="Gray" FontStyle="Italic" Visibility="Collapsed"
+                   Margin="0,3,0,0" />
         <ComboBox Name="ComboBoxProcesses" Width="360" Height="30" VerticalAlignment="Top" Margin="0,5,0,0"
                   ToolTip="Select the application you want to automate. Only applications with visible windows are shown." />
         <TextBlock Name="TextBlockValidationMessage" Foreground="Red" Visibility="Collapsed" VerticalAlignment="Top"
