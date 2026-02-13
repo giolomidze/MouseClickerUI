@@ -22,6 +22,10 @@ public partial class MainWindow
     private readonly MouseMovementFeature _mouseMovementFeature;
     private readonly RandomWasdFeature _randomWasdFeature;
 
+    // Configuration
+    private readonly AppConfig _config;
+    private bool _autoDetectPaused;
+
     // Timers
     private readonly DispatcherTimer _timer;
     private readonly DispatcherTimer _pollingTimer;
@@ -38,6 +42,10 @@ public partial class MainWindow
         _windowManager = new WindowManager(_state);
         _processManager = new ProcessManager(new SystemProcessEnumerator());
 
+        // Load configuration
+        var configService = new ConfigService();
+        _config = configService.LoadConfig();
+
         // Initialize features
         _mouseClickerFeature = new MouseClickerFeature(_inputSimulator);
         _mouseMovementFeature = new MouseMovementFeature(_inputSimulator);
@@ -45,6 +53,11 @@ public partial class MainWindow
 
         // Initialize UI
         LoadProcesses();
+
+        if (_config.IsAutoDetectEnabled)
+        {
+            LabelStatus.Content = $"Auto-detect: waiting for {_config.TargetProcessName}...";
+        }
 
         // Setup timers
         _timer = new DispatcherTimer
@@ -103,10 +116,48 @@ public partial class MainWindow
             {
                 // Target process has terminated
                 _state.StopAll();
-                LabelStatus.Content = "Target application closed";
                 _timer.Stop();
+                _autoDetectPaused = false;
+
+                if (_config.IsAutoDetectEnabled)
+                {
+                    LabelStatus.Content = $"Auto-detect: {_config.TargetProcessName} closed, waiting...";
+                }
+                else
+                {
+                    LabelStatus.Content = "Target application closed";
+                }
             }
         }
+        else if (!_state.IsListening && _config.IsAutoDetectEnabled && !_autoDetectPaused)
+        {
+            TryAutoDetectTargetProcess();
+        }
+    }
+
+    private void TryAutoDetectTargetProcess()
+    {
+        var processInfos = ComboBoxProcesses.ItemsSource as List<ProcessInfo>;
+        if (processInfos == null || processInfos.Count == 0)
+        {
+            return;
+        }
+
+        var matchingProcess = processInfos.FirstOrDefault(p =>
+            string.Equals(p.ProcessName, _config.TargetProcessName, StringComparison.OrdinalIgnoreCase));
+
+        if (matchingProcess == null)
+        {
+            return;
+        }
+
+        // Found the process — select it and start listening
+        ComboBoxProcesses.SelectedItem = matchingProcess;
+        _windowManager.SetTargetWindow(matchingProcess);
+        _state.IsListening = true;
+        _state.IsAutoDetected = true;
+        LabelStatus.Content = $"Auto-detected: {matchingProcess.MainWindowTitle}";
+        _timer.Start();
     }
 
     #endregion
@@ -132,6 +183,7 @@ public partial class MainWindow
         _windowManager.SetTargetWindow(selectedProcess);
 
         _state.IsListening = true;
+        _state.IsAutoDetected = false;
         LabelStatus.Content = $"Listening enabled for {_state.TargetWindowTitle}";
         _timer.Start();
     }
@@ -139,8 +191,17 @@ public partial class MainWindow
     private void buttonStopListening_Click(object sender, RoutedEventArgs e)
     {
         _state.StopAll();
-        LabelStatus.Content = "Listening disabled";
         _timer.Stop();
+
+        if (_config.IsAutoDetectEnabled)
+        {
+            _autoDetectPaused = true;
+            LabelStatus.Content = "Listening disabled (auto-detect paused)";
+        }
+        else
+        {
+            LabelStatus.Content = "Listening disabled";
+        }
     }
 
     #endregion

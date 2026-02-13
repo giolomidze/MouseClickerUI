@@ -17,6 +17,9 @@ public class ApplicationState
     public string TargetProcessName { get; set; } = string.Empty;
     public string TargetWindowTitle { get; set; } = string.Empty;
 
+    // Auto-detection state
+    public bool IsAutoDetected { get; set; }
+
     // Configuration
     public int ClickDelay { get; set; } = 1;
 
