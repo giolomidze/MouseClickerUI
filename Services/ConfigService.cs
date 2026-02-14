@@ -85,6 +85,7 @@ public class ConfigService
 
     private static void NormalizeConfig(AppConfig config)
     {
+        config.HotkeyInputSource = HotkeyInputSources.Normalize(config.HotkeyInputSource);
         config.TargetProcessName = NormalizeProcessName(config.TargetProcessName);
 
         var history = config.DetectionHistory ?? new List<DetectionHistoryEntry>();

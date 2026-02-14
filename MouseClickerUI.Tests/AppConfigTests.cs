@@ -53,5 +53,6 @@ public class AppConfigTests
         // Assert
         Assert.Null(config.TargetProcessName);
         Assert.False(config.IsAutoDetectEnabled);
+        Assert.Equal(HotkeyInputSources.NumPad, config.HotkeyInputSource);
     }
 }

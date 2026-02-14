@@ -25,7 +25,7 @@
                     <Run Text="3. " FontWeight="Bold"/>
                     <Run Text="Click 'Start Listening' or press "/>
                     <Run Text="1" FontWeight="Bold"/>
-                    <Run Text=" key"/>
+                    <Run Text=" (based on Hotkey keys setting)"/>
                     <LineBreak/>
                     <Run Text="4. " FontWeight="Bold"/>
                     <Run Text="Focus target app, press "/>
@@ -50,7 +50,9 @@
                     <Run Text="8. " FontWeight="Bold"/>
                     <Run Text="Click 'Stop Listening' or press "/>
                     <Run Text="0" FontWeight="Bold"/>
-                    <Run Text=" key"/>
+                    <LineBreak/>
+                    <Run Text="9. " FontWeight="Bold"/>
+                    <Run Text="Choose Hotkey keys below (NumPad is default)"/>
                 </TextBlock>
             </Expander>
 
@@ -74,9 +76,23 @@
             <TextBlock Name="TextBlockValidationMessage" Foreground="Red" Visibility="Collapsed" VerticalAlignment="Top"
                        HorizontalAlignment="Left" Margin="0,5,0,0" />
 
+            <StackPanel Orientation="Horizontal" Margin="0,5,0,0" VerticalAlignment="Top">
+                <Label Content="Hotkey keys:" VerticalAlignment="Center" HorizontalAlignment="Left"
+                       ToolTip="Choose which keyboard section hotkeys listen to (NumPad is default)." />
+                <ComboBox Name="ComboBoxHotkeyInputSource"
+                          Width="180"
+                          Height="28"
+                          Margin="5,0,0,0"
+                          SelectionChanged="ComboBoxHotkeyInputSource_SelectionChanged"
+                          ToolTip="NumPad uses the right-side keypad. Number row uses keys above QWERTY.">
+                    <ComboBoxItem Tag="NumPad" Content="NumPad (default)" />
+                    <ComboBoxItem Tag="NumberRow" Content="Number Row (top)" />
+                </ComboBox>
+            </StackPanel>
+
             <StackPanel Orientation="Horizontal" Margin="10,5,0,0" VerticalAlignment="Top">
                 <Label Content="Delay (ms):" VerticalAlignment="Center" HorizontalAlignment="Left"
-                       ToolTip="Time interval between mouse clicks when using Key 8 feature (1-1000ms)" />
+                       ToolTip="Time interval between mouse clicks when using hotkey 8 feature (1-1000ms)" />
                 <Slider Name="SliderDelay" Minimum="1" Maximum="1000" Value="5" Width="200" Margin="5,0,0,0"
                         ValueChanged="SliderDelay_ValueChanged"
                         ToolTip="Adjust delay between clicks. Lower values = faster clicking (1ms = very fast, 1000ms = 1 second)" />
@@ -85,7 +101,7 @@
                          ToolTip="Enter delay value directly (1-1000)" />
             </StackPanel>
 
-            <Expander Header="Random WASD Settings (Key 6)" Margin="0,10,0,0"
+            <Expander Header="Random WASD Settings (Hotkey 6)" Margin="0,10,0,0"
                       Background="#F5F5F5" Padding="8">
                 <StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
@@ -127,7 +143,7 @@
                         ToolTip="Begin listening for key commands in the target application, or resume auto-detection if paused" />
                 <Button Name="ButtonStopListening" Content="Stop Listening" Width="120" Height="30" Margin="10,0,0,0"
                         Click="buttonStopListening_Click"
-                        ToolTip="Stop listening and disable all active features (same as pressing Key 0)" />
+                        ToolTip="Stop listening and disable all active features (same as pressing hotkey 0)" />
             </StackPanel>
 
             <Label Name="LabelStatus" Content="Status" Margin="0,10,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />

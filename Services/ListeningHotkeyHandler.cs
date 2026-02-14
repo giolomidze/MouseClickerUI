@@ -29,7 +29,7 @@ public class ListeningHotkeyHandler
             AutoDetectPaused = autoDetectPaused
         };
 
-        // Handle key '1' - Enable listening
+        // Handle hotkey '1' - Enable listening
         if (isEnableListeningPressed && !_state.PrevEnableListeningState)
         {
             if (isAutoDetectMode && isAutoDetectEnabled)
@@ -47,7 +47,7 @@ public class ListeningHotkeyHandler
         }
         _state.PrevEnableListeningState = isEnableListeningPressed;
 
-        // Handle key '0' - Disable listening and all features
+        // Handle hotkey '0' - Disable listening and all features
         if (isDisableListeningPressed && !_state.PrevDisableListeningState)
         {
             _state.StopAll();

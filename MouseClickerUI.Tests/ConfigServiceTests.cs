@@ -19,6 +19,53 @@ public class ConfigServiceTests
         Assert.NotNull(config);
         Assert.False(config.IsAutoDetectEnabled);
         Assert.Null(config.TargetProcessName);
+        Assert.Equal(HotkeyInputSources.NumPad, config.HotkeyInputSource);
+    }
+
+    [Fact]
+    public void LoadConfig_HotkeyInputSourceNumberRow_Parses()
+    {
+        // Arrange
+        var service = new ConfigService();
+        var tempFile = Path.GetTempFileName();
+        File.WriteAllText(tempFile, """{ "hotkeyInputSource": "NumberRow", "targetProcessName": "notepad" }""");
+
+        try
+        {
+            // Act
+            var config = service.LoadConfig(tempFile);
+
+            // Assert
+            Assert.Equal(HotkeyInputSources.NumberRow, config.HotkeyInputSource);
+            Assert.Equal("notepad", config.TargetProcessName);
+        }
+        finally
+        {
+            File.Delete(tempFile);
+        }
+    }
+
+    [Fact]
+    public void LoadConfig_HotkeyInputSourceUnknown_FallsBackToNumPad()
+    {
+        // Arrange
+        var service = new ConfigService();
+        var tempFile = Path.GetTempFileName();
+        File.WriteAllText(tempFile, """{ "hotkeyInputSource": "invalid", "targetProcessName": "notepad" }""");
+
+        try
+        {
+            // Act
+            var config = service.LoadConfig(tempFile);
+
+            // Assert
+            Assert.Equal(HotkeyInputSources.NumPad, config.HotkeyInputSource);
+            Assert.Equal("notepad", config.TargetProcessName);
+        }
+        finally
+        {
+            File.Delete(tempFile);
+        }
     }
 
     [Fact]
