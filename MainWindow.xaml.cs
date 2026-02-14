@@ -22,6 +22,7 @@ public partial class MainWindow
     private readonly MouseClickerFeature _mouseClickerFeature;
     private readonly MouseMovementFeature _mouseMovementFeature;
     private readonly RandomWasdFeature _randomWasdFeature;
+    private readonly ListeningHotkeyHandler _listeningHotkeyHandler;
 
     // Configuration
     private readonly AppConfig _config;
@@ -51,6 +52,7 @@ public partial class MainWindow
         _mouseClickerFeature = new MouseClickerFeature(_inputSimulator);
         _mouseMovementFeature = new MouseMovementFeature(_inputSimulator);
         _randomWasdFeature = new RandomWasdFeature(_inputSimulator, _windowManager, _state);
+        _listeningHotkeyHandler = new ListeningHotkeyHandler(_state);
 
         // Setup timers
         _timer = new DispatcherTimer
@@ -69,6 +71,7 @@ public partial class MainWindow
         // Initialize UI
         LoadProcesses();
         InitializeTargetModeControls();
+        ListBoxDetectionHistory.ItemsSource = _config.DetectionHistory;
 
         ComboBoxProcesses.GotFocus += ComboBoxProcesses_GotFocus;
     }
@@ -220,7 +223,63 @@ public partial class MainWindow
         _state.IsListening = true;
         _state.IsAutoDetected = true;
         LabelStatus.Content = $"Auto-detected: {matchingProcess.MainWindowTitle}";
+        AddOrUpdateDetectionHistory(matchingProcess);
         _timer.Start();
+    }
+
+    private void AddOrUpdateDetectionHistory(ProcessInfo process)
+    {
+        var existing = _config.DetectionHistory
+            .FirstOrDefault(h => string.Equals(h.ProcessName, process.ProcessName, StringComparison.OrdinalIgnoreCase));
+
+        if (existing != null)
+        {
+            existing.WindowTitle = process.MainWindowTitle;
+            existing.LastSelectedAtUtc = DateTime.UtcNow;
+        }
+        else
+        {
+            _config.DetectionHistory.Add(new DetectionHistoryEntry
+            {
+                ProcessName = process.ProcessName,
+                WindowTitle = process.MainWindowTitle,
+                LastSelectedAtUtc = DateTime.UtcNow
+            });
+        }
+
+        _configService.SaveConfig(_config);
+        RefreshDetectionHistoryList();
+    }
+
+    private void RefreshDetectionHistoryList()
+    {
+        ListBoxDetectionHistory.ItemsSource = null;
+        ListBoxDetectionHistory.ItemsSource = _config.DetectionHistory;
+    }
+
+    private void ListBoxDetectionHistory_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        ButtonSetDefaultAutoDetect.IsEnabled = ListBoxDetectionHistory.SelectedItem != null;
+    }
+
+    private void ButtonSetDefaultAutoDetect_Click(object sender, RoutedEventArgs e)
+    {
+        if (ListBoxDetectionHistory.SelectedItem is not DetectionHistoryEntry selectedEntry)
+            return;
+
+        _config.TargetProcessName = selectedEntry.ProcessName;
+        _configService.SaveConfig(_config);
+
+        if (RadioAutoDetect.IsChecked == true)
+        {
+            ComboBoxProcesses.IsEnabled = false;
+            ButtonStartListening.IsEnabled = false;
+            TextBlockAutoDetectInfo.Text = $"Target: {_config.TargetProcessName}";
+            TextBlockAutoDetectInfo.Visibility = Visibility.Visible;
+            LabelStatus.Content = $"Auto-detect: waiting for {_config.TargetProcessName}...";
+            _autoDetectPaused = false;
+            TryAutoDetectTargetProcess();
+        }
     }
 
     #endregion
@@ -261,7 +320,7 @@ public partial class MainWindow
         {
             // Save process name for auto-detect on future runs
             _config.TargetProcessName = selectedProcess.ProcessName;
-            _configService.SaveTargetProcessName(selectedProcess.ProcessName);
+            _configService.SaveConfig(_config);
 
             _state.IsAutoDetected = true;
             ComboBoxProcesses.IsEnabled = false;
@@ -276,6 +335,7 @@ public partial class MainWindow
             LabelStatus.Content = $"Listening enabled for {_state.TargetWindowTitle}";
         }
 
+        AddOrUpdateDetectionHistory(selectedProcess);
         _timer.Start();
     }
 
@@ -605,41 +665,30 @@ public partial class MainWindow
         var isKey7Pressed = _inputSimulator.IsKeyPressed(0x37); // Key '7'
         var isKey6Pressed = _inputSimulator.IsKeyPressed(0x36); // Key '6'
 
-        // Handle key '1' - Enable listening
-        if (isKey1Pressed && !_state.PrevEnableListeningState)
-        {
-            if (RadioAutoDetect.IsChecked == true && _config.IsAutoDetectEnabled)
-            {
-                _autoDetectPaused = false;
-                ButtonStartListening.IsEnabled = false;
-                LabelStatus.Content = $"Auto-detect: waiting for {_config.TargetProcessName}...";
-                TryAutoDetectTargetProcess();
-            }
-            else
-            {
-                _state.IsListening = true;
-                LabelStatus.Content = $"Listening enabled at {DateTime.Now}";
-            }
-        }
-        _state.PrevEnableListeningState = isKey1Pressed;
+        var listeningHotkeyResult = _listeningHotkeyHandler.Handle(
+            isKey1Pressed,
+            isKey0Pressed,
+            RadioAutoDetect.IsChecked == true,
+            _config.IsAutoDetectEnabled,
+            _config.TargetProcessName,
+            _autoDetectPaused);
 
-        // Handle key '0' - Disable listening and all features
-        if (isKey0Pressed && !_state.PrevDisableListeningState)
-        {
-            _state.StopAll();
-            _autoDetectPaused = true;
+        _autoDetectPaused = listeningHotkeyResult.AutoDetectPaused;
 
-            if (RadioAutoDetect.IsChecked == true && _config.IsAutoDetectEnabled)
-            {
-                ButtonStartListening.IsEnabled = true;
-                LabelStatus.Content = "Listening stopped — click Start Listening to resume auto-detect";
-            }
-            else
-            {
-                LabelStatus.Content = $"Listening disabled at {DateTime.Now}";
-            }
+        if (listeningHotkeyResult.StartListeningButtonEnabled.HasValue)
+        {
+            ButtonStartListening.IsEnabled = listeningHotkeyResult.StartListeningButtonEnabled.Value;
         }
-        _state.PrevDisableListeningState = isKey0Pressed;
+
+        if (!string.IsNullOrEmpty(listeningHotkeyResult.StatusMessage))
+        {
+            LabelStatus.Content = listeningHotkeyResult.StatusMessage;
+        }
+
+        if (listeningHotkeyResult.ShouldTryAutoDetect)
+        {
+            TryAutoDetectTargetProcess();
+        }
 
         // Handle key '8' - Enable mouse clicking
         if (_state.IsListening && isKey8Pressed && !_state.PrevEnableClickingState)
@@ -707,3 +756,8 @@ public partial class MainWindow
 
     #endregion
 }
+
+
+
+
+

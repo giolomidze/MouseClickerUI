@@ -12,6 +12,11 @@ public class AppConfig
     public string? TargetProcessName { get; set; }
 
     /// <summary>
+    /// History of selected or auto-detected processes.
+    /// </summary>
+    public List<DetectionHistoryEntry> DetectionHistory { get; set; } = new();
+
+    /// <summary>
     /// Whether auto-detection is configured with a valid process name.
     /// </summary>
     public bool IsAutoDetectEnabled => !string.IsNullOrWhiteSpace(TargetProcessName);
