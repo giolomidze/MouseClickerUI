@@ -259,7 +259,19 @@ public partial class MainWindow
 
     private void ListBoxDetectionHistory_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
     {
-        ButtonSetDefaultAutoDetect.IsEnabled = ListBoxDetectionHistory.SelectedItem != null;
+        var hasSelection = ListBoxDetectionHistory.SelectedItem != null;
+        ButtonSetDefaultAutoDetect.IsEnabled = hasSelection;
+        ButtonRemoveFromHistory.IsEnabled = hasSelection;
+    }
+
+    private void ButtonRemoveFromHistory_Click(object sender, RoutedEventArgs e)
+    {
+        if (ListBoxDetectionHistory.SelectedItem is not DetectionHistoryEntry selectedEntry)
+            return;
+
+        _config.DetectionHistory.Remove(selectedEntry);
+        _configService.SaveConfig(_config);
+        RefreshDetectionHistoryList();
     }
 
     private void ButtonSetDefaultAutoDetect_Click(object sender, RoutedEventArgs e)

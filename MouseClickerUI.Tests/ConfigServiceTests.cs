@@ -495,4 +495,78 @@ public class ConfigServiceTests
             File.Delete(tempFile);
         }
     }
+
+    [Fact]
+    public void SaveConfig_AfterRemovingEntry_PersistsWithoutRemovedEntry()
+    {
+        // Arrange — simulate the UI flow: save first (NormalizeConfig rebuilds list),
+        // then remove from the normalized list, then save again
+        var service = new ConfigService();
+        var tempFile = Path.GetTempFileName();
+        var now = DateTime.UtcNow;
+        var config = new AppConfig
+        {
+            DetectionHistory = new List<DetectionHistoryEntry>
+            {
+                new() { ProcessName = "notepad", WindowTitle = "Notepad", LastSelectedAtUtc = now },
+                new() { ProcessName = "chrome", WindowTitle = "Google Chrome", LastSelectedAtUtc = now.AddMinutes(-5) },
+                new() { ProcessName = "firefox", WindowTitle = "Firefox", LastSelectedAtUtc = now.AddMinutes(-10) }
+            }
+        };
+
+        try
+        {
+            service.SaveConfig(config, tempFile);
+
+            // Act — remove from the normalized list (as the UI would via SelectedItem)
+            var entryToRemove = config.DetectionHistory.First(e => e.ProcessName == "chrome");
+            config.DetectionHistory.Remove(entryToRemove);
+            service.SaveConfig(config, tempFile);
+            var loaded = service.LoadConfig(tempFile);
+
+            // Assert
+            Assert.Equal(2, loaded.DetectionHistory.Count);
+            Assert.Equal("notepad", loaded.DetectionHistory[0].ProcessName);
+            Assert.Equal("firefox", loaded.DetectionHistory[1].ProcessName);
+        }
+        finally
+        {
+            File.Delete(tempFile);
+        }
+    }
+
+    [Fact]
+    public void SaveConfig_AfterRemovingAllEntries_PersistsEmptyHistory()
+    {
+        // Arrange
+        var service = new ConfigService();
+        var tempFile = Path.GetTempFileName();
+        var config = new AppConfig
+        {
+            TargetProcessName = "notepad",
+            DetectionHistory = new List<DetectionHistoryEntry>
+            {
+                new() { ProcessName = "notepad", WindowTitle = "Notepad", LastSelectedAtUtc = DateTime.UtcNow }
+            }
+        };
+
+        try
+        {
+            service.SaveConfig(config, tempFile);
+
+            // Act — remove from normalized list, then save
+            var entry = config.DetectionHistory.Single();
+            config.DetectionHistory.Remove(entry);
+            service.SaveConfig(config, tempFile);
+            var loaded = service.LoadConfig(tempFile);
+
+            // Assert
+            Assert.Empty(loaded.DetectionHistory);
+            Assert.Equal("notepad", loaded.TargetProcessName);
+        }
+        finally
+        {
+            File.Delete(tempFile);
+        }
+    }
 }
