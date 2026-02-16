@@ -35,10 +35,15 @@ internal static class Constants
     public const ushort VK_NUMPAD9 = 0x69; // NumPad 9 key
 
     // Input type constants
+    public const int INPUT_MOUSE = 0;
     public const int INPUT_KEYBOARD = 1;
 
     // Keyboard event flags
     public const uint KEYEVENTF_KEYUP = 0x0002;
+    public const uint KEYEVENTF_SCANCODE = 0x0008;
+
+    // MapVirtualKey mapping types
+    public const uint MAPVK_VK_TO_VSC = 0;
 
 #pragma warning restore IDE1006 // Naming Styles
 }

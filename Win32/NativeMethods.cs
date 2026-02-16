@@ -8,10 +8,10 @@ namespace MouseClickerUI.Win32;
 internal static class NativeMethods
 {
     [DllImport("user32.dll")]
-    public static extern void mouse_event(uint dwFlags, int dx, int dy, uint dwData, UIntPtr dwExtraInfo);
+    public static extern short GetKeyState(int nVirtKey);
 
     [DllImport("user32.dll")]
-    public static extern short GetKeyState(int nVirtKey);
+    public static extern uint MapVirtualKey(uint uCode, uint uMapType);
 
     [DllImport("user32.dll", SetLastError = true)]
     public static extern IntPtr GetForegroundWindow();
