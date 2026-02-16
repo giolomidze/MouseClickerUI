@@ -23,7 +23,15 @@ public class ConfigService
     /// </summary>
     public AppConfig LoadConfig(string? configPath = null)
     {
+        var isDefaultPath = configPath == null;
         configPath ??= GetConfigPath();
+
+        // Migration: if using the default path and no config exists yet,
+        // try to copy from the legacy location (next to the exe)
+        if (isDefaultPath && !File.Exists(configPath))
+        {
+            TryMigrateLegacyConfig(configPath);
+        }
 
         if (!File.Exists(configPath))
         {
@@ -58,6 +66,12 @@ public class ConfigService
 
         NormalizeConfig(config);
 
+        var directory = Path.GetDirectoryName(configPath);
+        if (!string.IsNullOrEmpty(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+
         var json = JsonSerializer.Serialize(config, JsonOptions);
         File.WriteAllText(configPath, json);
     }
@@ -75,12 +89,58 @@ public class ConfigService
     }
 
     /// <summary>
-    /// Gets the full path to the config file next to the executable.
-    /// Uses AppContext.BaseDirectory which works correctly with single-file publish.
+    /// Gets the full path to the config file in the user's local app data folder.
+    /// Uses %LOCALAPPDATA%\MouseClickerUI\ which is writable by standard users,
+    /// unlike Program Files where the installer places the executable.
     /// </summary>
     public static string GetConfigPath()
     {
+        var appDataDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "MouseClickerUI");
+        return Path.Combine(appDataDir, ConfigFileName);
+    }
+
+    /// <summary>
+    /// Gets the legacy config path next to the executable (used for migration).
+    /// </summary>
+    private static string GetLegacyConfigPath()
+    {
         return Path.Combine(AppContext.BaseDirectory, ConfigFileName);
+    }
+
+    /// <summary>
+    /// Attempts to migrate config from the legacy path (next to exe) to the new path.
+    /// Silently does nothing if the legacy file doesn't exist or the copy fails.
+    /// </summary>
+    private static void TryMigrateLegacyConfig(string newConfigPath)
+    {
+        try
+        {
+            var legacyPath = GetLegacyConfigPath();
+
+            if (string.Equals(Path.GetFullPath(legacyPath), Path.GetFullPath(newConfigPath), StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            if (!File.Exists(legacyPath))
+            {
+                return;
+            }
+
+            var directory = Path.GetDirectoryName(newConfigPath);
+            if (!string.IsNullOrEmpty(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            File.Copy(legacyPath, newConfigPath, overwrite: false);
+        }
+        catch
+        {
+            // Migration is best-effort — if it fails, the app starts with fresh defaults
+        }
     }
 
     private static void NormalizeConfig(AppConfig config)

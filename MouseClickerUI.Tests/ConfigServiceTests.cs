@@ -583,6 +583,40 @@ public class ConfigServiceTests
     }
 
     [Fact]
+    public void SaveConfig_DirectoryDoesNotExist_CreatesDirectoryAndSavesConfig()
+    {
+        // Arrange
+        var service = new ConfigService();
+        var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), "nested");
+        var tempFile = Path.Combine(tempDir, "config.json");
+        var config = new AppConfig
+        {
+            TargetProcessName = "notepad",
+            HotkeyInputSource = HotkeyInputSources.NumPad
+        };
+
+        try
+        {
+            // Act
+            service.SaveConfig(config, tempFile);
+
+            // Assert
+            Assert.True(File.Exists(tempFile));
+            var loaded = service.LoadConfig(tempFile);
+            Assert.Equal("notepad", loaded.TargetProcessName);
+            Assert.Equal(HotkeyInputSources.NumPad, loaded.HotkeyInputSource);
+        }
+        finally
+        {
+            var parentDir = Path.GetDirectoryName(tempDir);
+            if (parentDir != null && Directory.Exists(parentDir))
+            {
+                Directory.Delete(parentDir, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
     public void SaveConfig_AfterRemovingAllEntries_PersistsEmptyHistory()
     {
         // Arrange
