@@ -27,6 +27,7 @@ public partial class MainWindow
     // Configuration
     private readonly AppConfig _config;
     private bool _autoDetectPaused;
+    private bool _isInitializingHotkeyInputSource;
 
     // Timers
     private readonly DispatcherTimer _timer;
@@ -71,6 +72,7 @@ public partial class MainWindow
         // Initialize UI
         LoadProcesses();
         InitializeTargetModeControls();
+        InitializeHotkeyInputSourceControls();
         ListBoxDetectionHistory.ItemsSource = _config.DetectionHistory;
 
         ComboBoxProcesses.GotFocus += ComboBoxProcesses_GotFocus;
@@ -138,6 +140,71 @@ public partial class MainWindow
         }
 
         LabelStatus.Content = "Select an application and click Start Listening";
+    }
+
+    private void InitializeHotkeyInputSourceControls()
+    {
+        _isInitializingHotkeyInputSource = true;
+
+        try
+        {
+            _config.HotkeyInputSource = HotkeyInputSources.Normalize(_config.HotkeyInputSource);
+
+            foreach (var item in ComboBoxHotkeyInputSource.Items.OfType<System.Windows.Controls.ComboBoxItem>())
+            {
+                if (item.Tag is string tag &&
+                    string.Equals(tag, _config.HotkeyInputSource, StringComparison.Ordinal))
+                {
+                    ComboBoxHotkeyInputSource.SelectedItem = item;
+                    return;
+                }
+            }
+
+            ComboBoxHotkeyInputSource.SelectedIndex = 0;
+        }
+        finally
+        {
+            _isInitializingHotkeyInputSource = false;
+        }
+    }
+
+    private void ComboBoxHotkeyInputSource_SelectionChanged(object sender,
+        System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (_isInitializingHotkeyInputSource)
+        {
+            return;
+        }
+
+        if (ComboBoxHotkeyInputSource.SelectedItem is not System.Windows.Controls.ComboBoxItem selectedItem ||
+            selectedItem.Tag is not string selectedSource)
+        {
+            return;
+        }
+
+        var normalizedSource = HotkeyInputSources.Normalize(selectedSource);
+        if (string.Equals(_config.HotkeyInputSource, normalizedSource, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        _config.HotkeyInputSource = normalizedSource;
+        _configService.SaveConfig(_config);
+        ResetHotkeyEdgeStates();
+
+        var sourceLabel = string.Equals(normalizedSource, HotkeyInputSources.NumPad, StringComparison.Ordinal)
+            ? "NumPad"
+            : "number row";
+        LabelStatus.Content = $"Hotkeys now use {sourceLabel} keys";
+    }
+
+    private void ResetHotkeyEdgeStates()
+    {
+        _state.PrevEnableListeningState = false;
+        _state.PrevDisableListeningState = false;
+        _state.PrevEnableClickingState = false;
+        _state.PrevEnableMouseMovingState = false;
+        _state.PrevEnableRandomWasdState = false;
     }
 
     #endregion
@@ -669,17 +736,18 @@ public partial class MainWindow
             return;
         }
 
-        // Check key states
-        var isKey1Pressed = _inputSimulator.IsKeyPressed(0x31); // Key '1'
-        var isKey0Pressed = _inputSimulator.IsKeyPressed(0x30); // Key '0'
-        var isKey8Pressed = _inputSimulator.IsKeyPressed(0x38); // Key '8'
-        var isKey9Pressed = _inputSimulator.IsKeyPressed(0x39); // Key '9'
-        var isKey7Pressed = _inputSimulator.IsKeyPressed(0x37); // Key '7'
-        var isKey6Pressed = _inputSimulator.IsKeyPressed(0x36); // Key '6'
+        // Check key states from selected hotkey source (NumPad or top number row)
+        var hotkeyKeys = HotkeyMapping.GetKeys(_config.HotkeyInputSource);
+        var isEnableListeningPressed = _inputSimulator.IsKeyPressed(hotkeyKeys.EnableListening);
+        var isDisableListeningPressed = _inputSimulator.IsKeyPressed(hotkeyKeys.DisableListening);
+        var isEnableClickingPressed = _inputSimulator.IsKeyPressed(hotkeyKeys.EnableClicking);
+        var isDisableClickingPressed = _inputSimulator.IsKeyPressed(hotkeyKeys.DisableClicking);
+        var isToggleMouseMovingPressed = _inputSimulator.IsKeyPressed(hotkeyKeys.ToggleMouseMovement);
+        var isToggleRandomWasdPressed = _inputSimulator.IsKeyPressed(hotkeyKeys.ToggleRandomWasd);
 
         var listeningHotkeyResult = _listeningHotkeyHandler.Handle(
-            isKey1Pressed,
-            isKey0Pressed,
+            isEnableListeningPressed,
+            isDisableListeningPressed,
             RadioAutoDetect.IsChecked == true,
             _config.IsAutoDetectEnabled,
             _config.TargetProcessName,
@@ -702,23 +770,23 @@ public partial class MainWindow
             TryAutoDetectTargetProcess();
         }
 
-        // Handle key '8' - Enable mouse clicking
-        if (_state.IsListening && isKey8Pressed && !_state.PrevEnableClickingState)
+        // Handle hotkey '8' - Enable mouse clicking
+        if (_state.IsListening && isEnableClickingPressed && !_state.PrevEnableClickingState)
         {
             _state.IsClicking = true;
             LabelStatus.Content = $"Mouse clicking enabled at {DateTime.Now}";
         }
-        _state.PrevEnableClickingState = isKey8Pressed;
+        _state.PrevEnableClickingState = isEnableClickingPressed;
 
-        // Handle key '9' - Disable mouse clicking
-        if (_state.IsListening && isKey9Pressed && _state.IsClicking)
+        // Handle hotkey '9' - Disable mouse clicking
+        if (_state.IsListening && isDisableClickingPressed && _state.IsClicking)
         {
             _state.IsClicking = false;
             LabelStatus.Content = $"Mouse clicking disabled at {DateTime.Now}";
         }
 
-        // Handle key '7' - Toggle mouse movement
-        if (_state.IsListening && isKey7Pressed && !_state.PrevEnableMouseMovingState)
+        // Handle hotkey '7' - Toggle mouse movement
+        if (_state.IsListening && isToggleMouseMovingPressed && !_state.PrevEnableMouseMovingState)
         {
             _state.IsMouseMoving = !_state.IsMouseMoving;
             if (_state.IsMouseMoving)
@@ -731,10 +799,10 @@ public partial class MainWindow
                 LabelStatus.Content = $"Mouse movement disabled at {DateTime.Now}";
             }
         }
-        _state.PrevEnableMouseMovingState = isKey7Pressed;
+        _state.PrevEnableMouseMovingState = isToggleMouseMovingPressed;
 
-        // Handle key '6' - Toggle random WASD
-        if (_state.IsListening && isKey6Pressed && !_state.PrevEnableRandomWasdState)
+        // Handle hotkey '6' - Toggle random WASD
+        if (_state.IsListening && isToggleRandomWasdPressed && !_state.PrevEnableRandomWasdState)
         {
             _state.IsRandomWasdEnabled = !_state.IsRandomWasdEnabled;
             if (_state.IsRandomWasdEnabled)
@@ -747,7 +815,7 @@ public partial class MainWindow
                 LabelStatus.Content = $"Random WASD disabled at {DateTime.Now}";
             }
         }
-        _state.PrevEnableRandomWasdState = isKey6Pressed;
+        _state.PrevEnableRandomWasdState = isToggleRandomWasdPressed;
 
         // Execute active features
         if (_state.IsClicking)

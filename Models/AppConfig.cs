@@ -6,6 +6,13 @@ namespace MouseClickerUI.Models;
 public class AppConfig
 {
     /// <summary>
+    /// Which keyboard section to use for hotkeys.
+    /// Supported values: NumPad, NumberRow.
+    /// Defaults to NumPad.
+    /// </summary>
+    public string HotkeyInputSource { get; set; } = HotkeyInputSources.NumPad;
+
+    /// <summary>
     /// Process name to auto-detect and attach to (without .exe extension).
     /// Null or empty means auto-detection is disabled.
     /// </summary>

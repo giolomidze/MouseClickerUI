@@ -5,36 +5,105 @@ using MouseClickerUI.Win32;
 namespace MouseClickerUI.Services;
 
 /// <summary>
-/// Service for simulating mouse and keyboard input via Win32 API.
+/// Service for simulating mouse and keyboard input via Win32 SendInput API.
 /// </summary>
 public class InputSimulator
 {
+    private static readonly int InputSize = Marshal.SizeOf(typeof(INPUT));
+
     /// <summary>
-    /// Simulates a left mouse click.
+    /// Simulates a left mouse click (down + up) as a single atomic SendInput call.
     /// </summary>
     public virtual void SimulateMouseClick()
     {
-        NativeMethods.mouse_event(Constants.MOUSEEVENTF_LEFTDOWN, 0, 0, 0, UIntPtr.Zero);
-        NativeMethods.mouse_event(Constants.MOUSEEVENTF_LEFTUP, 0, 0, 0, UIntPtr.Zero);
+        INPUT[] inputs = new INPUT[2];
+
+        inputs[0] = new INPUT
+        {
+            type = Constants.INPUT_MOUSE,
+            u = new InputUnion
+            {
+                mi = new MOUSEINPUT
+                {
+                    dx = 0,
+                    dy = 0,
+                    mouseData = 0,
+                    dwFlags = Constants.MOUSEEVENTF_LEFTDOWN,
+                    time = 0,
+                    dwExtraInfo = IntPtr.Zero
+                }
+            }
+        };
+
+        inputs[1] = new INPUT
+        {
+            type = Constants.INPUT_MOUSE,
+            u = new InputUnion
+            {
+                mi = new MOUSEINPUT
+                {
+                    dx = 0,
+                    dy = 0,
+                    mouseData = 0,
+                    dwFlags = Constants.MOUSEEVENTF_LEFTUP,
+                    time = 0,
+                    dwExtraInfo = IntPtr.Zero
+                }
+            }
+        };
+
+        uint result = NativeMethods.SendInput(2, inputs, InputSize);
+        if (result != 2)
+        {
+            uint errorCode = NativeMethods.GetLastError();
+            Debug.WriteLine($"[SendInput] Failed to send mouse click. Expected 2 events, got {result}. Error code: {errorCode} (0x{errorCode:X8})");
+        }
     }
 
     /// <summary>
-    /// Simulates relative mouse movement.
+    /// Simulates relative mouse movement via SendInput.
     /// </summary>
     /// <param name="dx">Horizontal movement in pixels</param>
     /// <param name="dy">Vertical movement in pixels</param>
     public virtual void SimulateMouseMovement(int dx, int dy)
     {
-        NativeMethods.mouse_event(Constants.MOUSEEVENTF_MOVE, dx, dy, 0, UIntPtr.Zero);
+        INPUT[] inputs = new INPUT[1];
+
+        inputs[0] = new INPUT
+        {
+            type = Constants.INPUT_MOUSE,
+            u = new InputUnion
+            {
+                mi = new MOUSEINPUT
+                {
+                    dx = dx,
+                    dy = dy,
+                    mouseData = 0,
+                    dwFlags = Constants.MOUSEEVENTF_MOVE,
+                    time = 0,
+                    dwExtraInfo = IntPtr.Zero
+                }
+            }
+        };
+
+        uint result = NativeMethods.SendInput(1, inputs, InputSize);
+        if (result != 1)
+        {
+            uint errorCode = NativeMethods.GetLastError();
+            Debug.WriteLine($"[SendInput] Failed to send mouse movement. Expected 1 event, got {result}. Error code: {errorCode} (0x{errorCode:X8})");
+        }
     }
 
     /// <summary>
     /// Simulates a key press (down + up) for the specified virtual key code.
+    /// Includes scan codes via MapVirtualKey for better compatibility with DirectInput apps.
     /// </summary>
     /// <param name="virtualKeyCode">Virtual key code to press</param>
     /// <returns>True if successful, false otherwise</returns>
     public virtual bool SimulateKeyPress(ushort virtualKeyCode)
     {
+        ushort scanCode = (ushort)NativeMethods.MapVirtualKey(virtualKeyCode, Constants.MAPVK_VK_TO_VSC);
+
         INPUT[] inputs = new INPUT[2];
 
         // Key down event
@@ -46,7 +115,7 @@ public class InputSimulator
                 ki = new KEYBDINPUT
                 {
                     wVk = virtualKeyCode,
-                    wScan = 0,
+                    wScan = scanCode,
                     dwFlags = 0,
                     time = 0,
                     dwExtraInfo = IntPtr.Zero
@@ -63,7 +132,7 @@ public class InputSimulator
                 ki = new KEYBDINPUT
                 {
                     wVk = virtualKeyCode,
-                    wScan = 0,
+                    wScan = scanCode,
                     dwFlags = Constants.KEYEVENTF_KEYUP,
                     time = 0,
                     dwExtraInfo = IntPtr.Zero
@@ -72,20 +141,12 @@ public class InputSimulator
         };
 
         // Send both key down and key up events
-        // Marshal.SizeOf correctly calculates size including padding (40 bytes on 64-bit)
-        uint result = NativeMethods.SendInput(2, inputs, Marshal.SizeOf(typeof(INPUT)));
+        uint result = NativeMethods.SendInput(2, inputs, InputSize);
 
-        // SendInput returns the number of events successfully sent
-        // Should be 2 (key down + key up). If not, the send failed.
         if (result != 2)
         {
-            // SendInput failed - check the error code
             uint errorCode = NativeMethods.GetLastError();
             Debug.WriteLine($"[SendInput] Failed to send key press. Expected 2 events, got {result}. Error code: {errorCode} (0x{errorCode:X8})");
-            // Common error codes:
-            // 5 = ACCESS_DENIED (requires admin or proper permissions)
-            // 87 = ERROR_INVALID_PARAMETER (invalid INPUT structure)
-            // 578 = ERROR_HOOK_TYPE_INCOMPATIBLE (UIPI blocking)
             return false;
         }
 

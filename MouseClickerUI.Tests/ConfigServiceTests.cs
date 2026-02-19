@@ -19,6 +19,53 @@ public class ConfigServiceTests
         Assert.NotNull(config);
         Assert.False(config.IsAutoDetectEnabled);
         Assert.Null(config.TargetProcessName);
+        Assert.Equal(HotkeyInputSources.NumPad, config.HotkeyInputSource);
+    }
+
+    [Fact]
+    public void LoadConfig_HotkeyInputSourceNumberRow_Parses()
+    {
+        // Arrange
+        var service = new ConfigService();
+        var tempFile = Path.GetTempFileName();
+        File.WriteAllText(tempFile, """{ "hotkeyInputSource": "NumberRow", "targetProcessName": "notepad" }""");
+
+        try
+        {
+            // Act
+            var config = service.LoadConfig(tempFile);
+
+            // Assert
+            Assert.Equal(HotkeyInputSources.NumberRow, config.HotkeyInputSource);
+            Assert.Equal("notepad", config.TargetProcessName);
+        }
+        finally
+        {
+            File.Delete(tempFile);
+        }
+    }
+
+    [Fact]
+    public void LoadConfig_HotkeyInputSourceUnknown_FallsBackToNumPad()
+    {
+        // Arrange
+        var service = new ConfigService();
+        var tempFile = Path.GetTempFileName();
+        File.WriteAllText(tempFile, """{ "hotkeyInputSource": "invalid", "targetProcessName": "notepad" }""");
+
+        try
+        {
+            // Act
+            var config = service.LoadConfig(tempFile);
+
+            // Assert
+            Assert.Equal(HotkeyInputSources.NumPad, config.HotkeyInputSource);
+            Assert.Equal("notepad", config.TargetProcessName);
+        }
+        finally
+        {
+            File.Delete(tempFile);
+        }
     }
 
     [Fact]
@@ -532,6 +579,40 @@ public class ConfigServiceTests
         finally
         {
             File.Delete(tempFile);
+        }
+    }
+
+    [Fact]
+    public void SaveConfig_DirectoryDoesNotExist_CreatesDirectoryAndSavesConfig()
+    {
+        // Arrange
+        var service = new ConfigService();
+        var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), "nested");
+        var tempFile = Path.Combine(tempDir, "config.json");
+        var config = new AppConfig
+        {
+            TargetProcessName = "notepad",
+            HotkeyInputSource = HotkeyInputSources.NumPad
+        };
+
+        try
+        {
+            // Act
+            service.SaveConfig(config, tempFile);
+
+            // Assert
+            Assert.True(File.Exists(tempFile));
+            var loaded = service.LoadConfig(tempFile);
+            Assert.Equal("notepad", loaded.TargetProcessName);
+            Assert.Equal(HotkeyInputSources.NumPad, loaded.HotkeyInputSource);
+        }
+        finally
+        {
+            var parentDir = Path.GetDirectoryName(tempDir);
+            if (parentDir != null && Directory.Exists(parentDir))
+            {
+                Directory.Delete(parentDir, recursive: true);
+            }
         }
     }
 

@@ -17,19 +17,23 @@ Mouse Clicker UI is a Windows application that allows users to automate mouse cl
 1. Launch the Mouse Clicker UI application.
 2. Select the target application from the dropdown list.
 3. Set click delay (1-1000ms) using the slider or by entering a value.
-4. Click "Start Listening" or press '1' key to begin monitoring.
-5. Focus on the target application window and use the following key controls:
+4. Choose your hotkey keyboard section:
+    - `NumPad` (default, right-side keypad)
+    - `Number Row` (top row above QWERTY)
+5. Click "Start Listening" or press '1' (in your selected hotkey section) to begin monitoring.
+6. Focus on the target application window and use the following key controls:
     - Press '1' to enable listening
     - Press '0' to disable listening and stop all features
     - Press '8' to start mouse clicking
     - Press '9' to stop mouse clicking
     - Press '7' to toggle smooth mouse movement (left-right and up-down)
     - Press '6' to toggle random WASD keypresses + mouse clicks (50% chance)
-6. The status label will show the current state of the application.
+7. The status label will show the current state of the application.
 
 ## Key Bindings
 
-All key bindings work only when the target application window is in focus:
+All key bindings work only when the target application window is in focus.
+You can choose the hotkey keyboard section from the UI (`NumPad` default or top `Number Row`).
 
 - **'1'**: Enable listening
 - **'0'**: Disable listening and stop all features
@@ -42,7 +46,7 @@ All key bindings work only when the target application window is in focus:
 
 - The application will only function when the selected target window is in focus.
 - Be cautious when using this tool, as it can perform rapid mouse clicks and keypresses.
-- Always ensure you have a way to quickly stop automation (press '0' key or switch windows).
+- Always ensure you have a way to quickly stop automation (press hotkey '0' in your selected section or switch windows).
 - The random WASD feature performs keypresses every 200-600ms, with each keypress having a 50% chance of also triggering a mouse click.
 - The smooth mouse movement uses natural sine/cosine wave patterns for realistic motion.
 
