@@ -28,11 +28,13 @@ This will:
 
 ### Custom Version
 
-To build with a specific version number:
+To build with a specific version number (format `X.Y.Z`, defaults to `1.0.0`):
 
 ```powershell
 .\build-installer.ps1 -Version "1.2.3"
 ```
+
+The version is stamped into both the installer (passed to Inno Setup as `/DAppVersion=...`) and the executable's file version (`dotnet publish /p:Version=...`). `setup.iss` is not modified.
 
 ### Custom Inno Setup Path
 
@@ -49,7 +51,7 @@ You can build the installer in GitHub Actions using the manual workflow:
 1. Go to **Actions** → **Build Windows Installer**.
 2. Click **Run workflow**.
 3. Optionally set:
-   - **version** to override `AppVersion` in `setup.iss`.
+   - **version** to set the installer and executable version (defaults to `1.0.0`).
    - **framework_dependent** to produce a smaller installer (requires .NET Desktop Runtime on target machines).
 
 The workflow publishes the app, compiles the Inno Setup installer, and uploads `MouseClickerUI-Setup.exe` as a build artifact.
@@ -74,17 +76,22 @@ bin\Release\net9.0-windows\win-x64\publish\MouseClickerUI.exe
 3. Click **Build** → **Compile** (or press F9)
 4. The installer will be created in `dist\MouseClickerUI-Setup.exe`
 
+When compiled from the GUI the version defaults to `1.0.0`. To set it from the command line:
+
+```powershell
+& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DAppVersion=1.2.3 setup.iss
+```
+
 ## Configuration
 
 ### Customizing the Installer
 
-Edit `setup.iss` to customize:
+Key settings in `setup.iss`:
 
-- **AppVersion**: Version number displayed in installer
-- **AppPublisher**: Your company/developer name
-- **AppPublisherURL**: Your website URL
-- **AppSupportURL**: Support page URL
-- **AppUpdatesURL**: Updates page URL
+- **AppId**: Unique GUID identifying the app for upgrades and uninstall. **Never change it** — doing so makes new versions install side-by-side instead of upgrading.
+- **AppVersion**: Supplied by the build script via `/DAppVersion` (defaults to `1.0.0`)
+- **AppPublisher**: `App Dev Space`
+- **PrivilegesRequired**: `lowest` — installs per-user without admin rights by default; the installer offers an all-users (admin) option in a dialog
 
 ### Adding License File
 
@@ -109,7 +116,7 @@ InfoBeforeFile=README.txt
 The generated installer (`dist\MouseClickerUI-Setup.exe`) is a single executable file that:
 - Can be distributed via email, website, or USB
 - Includes all dependencies (self-contained)
-- Installs to `Program Files\MouseClickerUI`
+- Installs per-user to `%LOCALAPPDATA%\Programs\MouseClickerUI` without admin rights (or to `Program Files\MouseClickerUI` if the user chooses an all-users install)
 - Creates Start Menu shortcuts
 - Includes an uninstaller
 - Can be run silently with `/SILENT` flag
