@@ -9,6 +9,12 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# Version must be numeric (e.g. 1.2.3) - required by both .NET assembly versioning and Inno Setup VersionInfoVersion
+if ($Version -notmatch '^\d+\.\d+\.\d+(\.\d+)?$') {
+    Write-Host "ERROR: Version '$Version' is invalid. Use the format X.Y.Z (e.g. 1.2.3)." -ForegroundColor Red
+    exit 1
+}
+
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "MouseClickerUI Installer Build Script" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
@@ -37,14 +43,16 @@ if ($FrameworkDependent) {
         /p:SelfContained=false `
         /p:PublishSingleFile=false `
         /p:IncludeNativeLibrariesForSelfExtract=false `
-        /p:PublishReadyToRun=true
+        /p:PublishReadyToRun=true `
+        /p:Version=$Version
 } else {
     Write-Host "Publishing application (self-contained)..." -ForegroundColor Green
     dotnet publish "MouseClickerUI.csproj" --configuration Release --runtime win-x64 `
         /p:SelfContained=true `
         /p:PublishSingleFile=true `
         /p:IncludeNativeLibrariesForSelfExtract=true `
-        /p:PublishReadyToRun=true
+        /p:PublishReadyToRun=true `
+        /p:Version=$Version
 }
 
 if ($LASTEXITCODE -ne 0) {
@@ -59,18 +67,10 @@ if (-not (Test-Path $publishPath)) {
     exit 1
 }
 
-# Update version in setup.iss if provided
-if ($Version -ne "1.0.0") {
-    Write-Host "Updating version in setup.iss to $Version..." -ForegroundColor Green
-    $setupContent = Get-Content "setup.iss" -Raw
-    $setupContent = $setupContent -replace 'AppVersion=\d+\.\d+\.\d+', "AppVersion=$Version"
-    Set-Content "setup.iss" -Value $setupContent -NoNewline
-}
-
 # Build the installer
 Write-Host ""
-Write-Host "Building installer with Inno Setup..." -ForegroundColor Green
-& "$InnoSetupPath" "setup.iss"
+Write-Host "Building installer with Inno Setup (version $Version)..." -ForegroundColor Green
+& "$InnoSetupPath" "/DAppVersion=$Version" "setup.iss"
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "ERROR: Failed to build installer" -ForegroundColor Red

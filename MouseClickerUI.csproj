@@ -7,8 +7,14 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <UseWPF>true</UseWPF>
         <ApplicationIcon>app.ico</ApplicationIcon>
-        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+        <Company>App Dev Space</Company>
+        <Product>Mouse Clicker UI</Product>
         <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+        <!-- Only version/company info is wanted from assembly info generation; the platform
+             attributes would trigger CA1416 warnings in the (non-Windows TFM) test project. -->
+        <GenerateSupportedOSPlatformAttribute>false</GenerateSupportedOSPlatformAttribute>
+        <GenerateTargetPlatformAttribute>false</GenerateTargetPlatformAttribute>
         
         <!-- Publishing Configuration -->
         <PublishSingleFile>true</PublishSingleFile>
